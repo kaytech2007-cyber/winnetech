@@ -1,0 +1,106 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}QR Code Detail — WTI Admin{% endblock %}
+{% block page_title %}QR Code Detail{% endblock %}
+{% block nav_qr %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3 justify-content-center">
+  <div class="col-lg-6">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-qrcode"></i> {{ qr_obj.label }}</h5>
+        <span class="status-badge {% if qr_obj.is_active %}approved{% else %}absent{% endif %}">
+          {% if qr_obj.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </div>
+      <div class="wti-card-body text-center">
+        <!-- QR Code Display -->
+        <div class="qr-display mb-4" id="qrPrintArea">
+          <div style="background:var(--dark-blue);color:#fff;padding:1rem;border-radius:10px 10px 0 0;margin:-2rem -2rem 1.5rem">
+            <h5 style="margin:0;font-weight:800">Winneba Technical Institute</h5>
+            <p style="margin:0;font-size:0.8rem;color:var(--gold)">Staff Attendance System</p>
+          </div>
+          {% if qr_b64 %}
+          <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" style="max-width:280px;width:100%">
+          {% else %}
+          <div class="alert alert-warning" style="font-size:.9rem;border-radius:10px">
+            Unable to render the QR image. Use the scan URL below instead.
+          </div>
+          {% endif %}
+          <div class="mt-3">
+            <h6 style="font-weight:700;color:var(--dark-blue)">{{ qr_obj.label }}</h6>
+            <p style="color:#888;font-size:0.85rem;margin:0">Generated: {{ qr_obj.created_at|date:"M j, Y" }} · Valid {{ qr_obj.valid_from }} → {{ qr_obj.valid_until|default:"—" }}</p>
+            <p style="color:#888;font-size:0.78rem;margin:0.3rem 0 0">Scan to mark attendance</p>
+          </div>
+          <div style="background:#f8f9fa;padding:0.8rem;border-radius:0 0 10px 10px;margin:1.5rem -2rem -2rem;font-size:0.72rem;color:#888">
+            School Hours: 7:00 AM – 3:30 PM
+          </div>
+        </div>
+
+        <!-- Scan URL -->
+        <div class="mb-3">
+          <label class="form-label">Scan URL</label>
+          <div class="input-group">
+            <input type="text" class="form-control" value="{{ scan_url }}" id="scanUrl" readonly style="font-size:0.8rem">
+            <button class="btn btn-outline-secondary" onclick="copyUrl()" style="font-size:0.8rem">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-center flex-wrap align-items-center">
+          <button class="btn-gold px-4 py-2 rounded-3" onclick="printQR()">
+            <i class="fas fa-print me-2"></i> Print QR Code
+          </button>
+          <a href="{{ qr_list_url }}" class="btn-outline-gold px-4 py-2 rounded-3">
+            <i class="fas fa-arrow-left me-2"></i> Back
+          </a>
+          {% if show_qr_delete %}
+          <form method="post" action="{% url 'delete_qr' qr_obj.id %}" class="d-inline" onsubmit="return confirm('Delete this QR code permanently? This cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger px-4 py-2 rounded-3">
+              <i class="fas fa-trash-alt me-2"></i> Delete QR Code
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyUrl() {
+  const el = document.getElementById('scanUrl');
+  el.select();
+  document.execCommand('copy');
+  alert('URL copied to clipboard!');
+}
+
+function printQR() {
+  const content = document.getElementById('qrPrintArea').innerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>QR Code - {{ qr_obj.label }}</title>
+      <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
+        img { max-width: 300px; }
+        h5 { color: #0a1628; }
+      </style>
+    </head>
+    <body>
+      ${content}
+      <script>window.print(); window.close();<\/script>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+</script>
+{% endblock %}

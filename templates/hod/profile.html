@@ -1,0 +1,15 @@
+{% extends 'hod/base_hod.html' %}
+{% block page_heading %}My HOD Profile{% endblock %}
+{% block content %}
+<div class="hod-card">
+  <h2>{{ hod.full_name }}</h2>
+  <dl class="row mb-0">
+    <dt class="col-sm-4">HOD Staff ID</dt><dd class="col-sm-8">{{ hod.staff_id|default:'—' }}</dd>
+    <dt class="col-sm-4">Username</dt><dd class="col-sm-8">{{ hod.user.username }}</dd>
+    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ hod.user.email|default:'—' }}</dd>
+    <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ hod.phone|default:'—' }}</dd>
+    <dt class="col-sm-4">Programme</dt><dd class="col-sm-8">{{ programme.name }} ({{ programme.code }})</dd>
+    <dt class="col-sm-4">Account status</dt><dd class="col-sm-8">{% if hod.user.is_active and hod.is_active %}Active{% else %}Inactive{% endif %}</dd>
+  </dl>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Result — WTI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold: #f5a623; --dark-blue: #0a1628; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--dark-blue);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .result-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .result-icon {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 1.5rem;
+    }
+    .result-icon.success { background: rgba(40,167,69,0.15); color: #28a745; }
+    .result-icon.error { background: rgba(220,53,69,0.15); color: #dc3545; }
+    .result-icon.lesson { background: rgba(0,212,255,0.15); color: #00d4ff; }
+    .school-logo { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--gold); object-fit: cover; margin-bottom: 1rem; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold), #e8920a); color: #fff; border: none; border-radius: 50px; padding: 0.7rem 2rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="result-card">
+    <img src="{% static 'images/logo.png' %}" alt="WTI" class="school-logo">
+
+    {% if success %}
+      {% if scan_type == 'lesson_done' %}
+      <div class="result-icon lesson">
+        <i class="fas fa-flag-checkered"></i>
+      </div>
+      <h4 style="font-weight:800;color:var(--dark-blue)">Lesson Completed!</h4>
+      <p style="color:#888;font-size:0.9rem">{{ message }}</p>
+      <div style="background:#f8f9fa;border-radius:12px;padding:1rem;margin:1rem 0">
+        <div style="font-size:0.85rem;color:#666">
+          <i class="fas fa-user me-2" style="color:var(--gold)"></i>{{ teacher.full_name }}<br>
+          <i class="fas fa-clock me-2" style="color:var(--gold)"></i>Completed at {{ time }}
+        </div>
+      </div>
+      {% else %}
+      <div class="result-icon success">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h4 style="font-weight:800;color:var(--dark-blue)">Attendance Marked!</h4>
+      <p style="color:#888;font-size:0.9rem">{{ message }}</p>
+      <div style="background:#f8f9fa;border-radius:12px;padding:1rem;margin:1rem 0">
+        <div style="font-size:0.85rem;color:#666">
+          <i class="fas fa-user me-2" style="color:var(--gold)"></i>{{ teacher.full_name }}<br>
+          <i class="fas fa-clock me-2" style="color:var(--gold)"></i>Checked in at {{ time }}
+        </div>
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="result-icon error">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <h4 style="font-weight:800;color:#dc3545">Scan Failed</h4>
+      <p style="color:#888;font-size:0.9rem">{{ message }}</p>
+      {% if retry %}
+      <a href="{% url 'qr_scanner' %}" class="btn-gold" style="background: linear-gradient(135deg, #003087, #0047b3); margin-right: 0.5rem;">
+        <i class="fas fa-redo me-2"></i> Retry Scan
+      </a>
+      {% endif %}
+    {% endif %}
+
+    <a href="{% if request.user.is_authenticated %}{% if request.user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'facilitator_dashboard' %}{% endif %}{% else %}{% url 'teacher_login' %}{% endif %}" class="btn-gold">
+      <i class="fas fa-home me-2"></i> Go to Dashboard
+    </a>
+  </div>
+
+  <script>
+    // Play sound on success
+    {% if success %}
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [523, 659, 784];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.3);
+        osc.start(ctx.currentTime + i * 0.2);
+        osc.stop(ctx.currentTime + i * 0.2 + 0.3);
+      });
+    } catch(e) {}
+    {% endif %}
+  </script>
+</body>
+</html>

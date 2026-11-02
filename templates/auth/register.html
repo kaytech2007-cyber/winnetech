@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register — WTI{% endblock %}
+{% block extra_css %}
+<style>
+body{font-family:'Poppins',sans-serif;}
+.rp{min-height:100vh;background:linear-gradient(135deg,#0a1628,#1a2f5a);padding:2rem 1rem;display:flex;justify-content:center;align-items:flex-start;}
+.rc{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:800px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.rl{text-align:center;margin-bottom:1.2rem;}
+.rl img{width:60px;height:60px;border-radius:50%;border:3px solid #003087;object-fit:contain;background:#fff;padding:3px;}
+.rl h4{font-weight:800;color:#0a1628;margin:.4rem 0 0;}
+.rl p{color:#888;font-size:.82rem;margin:0;}
+.sbar{display:flex;gap:.4rem;margin-bottom:.3rem;}
+.ss{flex:1;height:5px;border-radius:3px;background:#e8ecf0;transition:background .3s;}
+.ss.on{background:#f5a623;}.ss.dn{background:#28a745;}
+.slb{font-size:.75rem;color:#888;margin-bottom:1.2rem;}
+.fstep{display:none;}.fstep.active{display:block;}
+.stitle{font-size:.95rem;font-weight:700;color:#0a1628;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
+.stitle i{color:#f5a623;}
+.form-control,.form-select{border:2px solid #e8ecf0;border-radius:10px;padding:.55rem .9rem;font-size:.88rem;}
+.form-control:focus,.form-select:focus{border-color:#f5a623;box-shadow:0 0 0 3px rgba(245,166,35,.15);outline:none;}
+.form-label{font-size:.8rem;font-weight:600;color:#555;margin-bottom:.3rem;}
+.sc{border:2px solid #e8ecf0;border-radius:10px;padding:.55rem .9rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.5rem;transition:all .2s;user-select:none;}
+.sc:hover,.sc.pk{border-color:#f5a623;background:rgba(245,166,35,.08);}
+.sc.pk{font-weight:600;}
+.tc{border:2px solid #e8ecf0;border-radius:12px;padding:1rem;cursor:pointer;text-align:center;transition:all .2s;}
+.tc:hover,.tc.pk{border-color:#f5a623;background:rgba(245,166,35,.07);}
+.tc i{font-size:1.5rem;display:block;margin-bottom:.3rem;}
+.btn-g{background:linear-gradient(135deg,#f5a623,#e8920a);color:#fff;border:none;border-radius:10px;padding:.6rem 1.5rem;font-weight:700;font-size:.88rem;cursor:pointer;}
+.btn-g:hover{transform:translateY(-2px);}
+.btn-b{background:#f0f2f5;color:#555;border:none;border-radius:10px;padding:.6rem 1.4rem;font-weight:600;font-size:.88rem;cursor:pointer;}
+.eb{background:#fff3f3;border:1px solid #f5c6cb;border-radius:10px;padding:.8rem 1rem;font-size:.82rem;color:#721c24;margin-bottom:1rem;}
+.eb ul{margin:0;padding-left:1.2rem;}
+.pw{position:relative;}
+.pe{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#aaa;cursor:pointer;}
+@media(max-width:576px){.rc{padding:1.2rem;}}
+</style>
+{% endblock %}
+{% block body %}
+<div class="rp">
+<div class="rc">
+  <div class="rl">
+    <img src="{% static 'images/logo.png' %}" alt="WTI">
+    <h4>Facilitator Registration</h4>
+    <p>Winneba Technical Institute</p>
+  </div>
+
+  {% if form.errors %}
+  <div class="eb">
+    <strong><i class="fas fa-exclamation-circle me-1"></i> Fix these errors:</strong>
+    <ul class="mt-1">
+      {% for field in form %}{% for err in field.errors %}<li><b>{{ field.label }}:</b> {{ err }}</li>{% endfor %}{% endfor %}
+      {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show auto-dismiss" style="font-size:.83rem;border-radius:10px">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}{% endif %}
+
+  <div class="sbar">
+    <div class="ss on" id="s1"></div><div class="ss" id="s2"></div>
+    <div class="ss" id="s3"></div><div class="ss" id="s4"></div>
+  </div>
+  <div class="slb" id="slb">Step 1 of 4 — Personal Information</div>
+
+  <form method="post" enctype="multipart/form-data" id="rf" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="preferred_subject" id="hs" value="{{ form.preferred_subject.value|default:'' }}">
+    <input type="hidden" name="department" id="hd" value="{{ form.department.value|default:'' }}">
+    <input type="hidden" name="course_type" id="hct" value="{{ form.course_type.value|default:'' }}">
+
+    <!-- STEP 1: Personal -->
+    <div class="fstep active" id="st1">
+      <div class="stitle"><i class="fas fa-user"></i> Personal Information</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control" placeholder="First Name" required value="{{ form.first_name.value|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name *</label>
+          <input type="text" name="last_name" class="form-control" placeholder="Last Name" required value="{{ form.last_name.value|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Staff ID * <small style="color:#888;font-weight:400">(your login ID)</small></label>
+          <input type="text" name="staff_id" class="form-control" placeholder="e.g. WTI0042" required
+                 style="text-transform:uppercase;font-weight:600;letter-spacing:1px"
+                 oninput="this.value=this.value.toUpperCase()"
+                 value="{{ form.staff_id.value|default:'' }}">
+          <small class="text-muted" style="font-size:.72rem">Choose a unique Staff ID — you'll use this to login</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-control" placeholder="Email Address" required value="{{ form.email.value|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone *</label>
+          <input type="tel" name="phone" class="form-control" placeholder="e.g. 0244123456" required value="{{ form.phone.value|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Gender *</label>
+          <select name="gender" class="form-select" required>
+            <option value="">-- Select --</option>
+            <option value="male" {% if form.gender.value == 'male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if form.gender.value == 'female' %}selected{% endif %}>Female</option>
+            <option value="other" {% if form.gender.value == 'other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Profile Photo</label>
+          <input type="file" name="profile_photo" class="form-control" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Professional -->
+    <div class="fstep" id="st2">
+      <div class="stitle"><i class="fas fa-graduation-cap"></i> Professional Information</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Qualification *</label>
+          <select name="qualification" class="form-select" required>
+            <option value="">-- Select --</option>
+            <option value="phd">PhD</option>
+            <option value="masters">Master's Degree</option>
+            <option value="degree">Bachelor's Degree</option>
+            <option value="hnd">HND</option>
+            <option value="diploma">Diploma</option>
+            <option value="certificate">Certificate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STEP 3: Course -->
+    <div class="fstep" id="st3">
+      <div class="stitle"><i class="fas fa-book-open"></i> Course Preference</div>
+      <label class="form-label fw-bold mb-2">Select Course Type *</label>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <div class="tc" id="tc_el" onclick="pickType('core')">
+            <i class="fas fa-book" style="color:#00d4ff"></i>
+            <div class="fw-bold" style="font-size:.88rem">Core Subjects</div>
+            <small class="text-muted">Maths, English, Science...</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="tc" id="tc_dp" onclick="pickType('departmental')">
+            <i class="fas fa-tools" style="color:#f5a623"></i>
+            <div class="fw-bold" style="font-size:.88rem">Departmental</div>
+            <small class="text-muted">Vocational &amp; technical</small>
+          </div>
+        </div>
+      </div>
+
+      <div id="elSec" style="display:none">
+        <label class="form-label fw-bold">Select Subject *</label>
+        <div class="row g-2">
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('mathematics',this)"><i class="fas fa-calculator" style="color:#f5a623"></i>Mathematics</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('english_language',this)"><i class="fas fa-language" style="color:#00d4ff"></i>English Language</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('social_studies',this)"><i class="fas fa-globe-africa" style="color:#28a745"></i>Social Studies</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('ict',this)"><i class="fas fa-laptop" style="color:#6f42c1"></i>ICT</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('science',this)"><i class="fas fa-flask" style="color:#dc3545"></i>Science</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickSubj('est',this)"><i class="fas fa-lightbulb" style="color:#fd7e14"></i>EST</div></div>
+        </div>
+      </div>
+
+      <div id="dpSec" style="display:none">
+        <label class="form-label fw-bold">Select Department *</label>
+        <div class="row g-2 mb-3" id="deptGrid">
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('information_technology',this)"><i class="fas fa-desktop" style="color:#6f42c1"></i>IT</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('plumbing',this)"><i class="fas fa-faucet" style="color:#00d4ff"></i>Plumbing</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('electricals',this)"><i class="fas fa-bolt" style="color:#ffc107"></i>Electricals</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('welding_fabrication',this)"><i class="fas fa-fire" style="color:#fd7e14"></i>Welding</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('fashion',this)"><i class="fas fa-tshirt" style="color:#e83e8c"></i>Fashion</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('catering',this)"><i class="fas fa-utensils" style="color:#28a745"></i>Catering</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('mechanical_engineering',this)"><i class="fas fa-cogs" style="color:#6c757d"></i>Mechanical</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('auto_mechanics',this)"><i class="fas fa-car" style="color:#dc3545"></i>Auto Mechanics</div></div>
+          <div class="col-md-4 col-6"><div class="sc" onclick="pickDept('building_construction',this)"><i class="fas fa-hard-hat" style="color:#f5a623"></i>Building</div></div>
+        </div>
+        <div id="subjGrid" style="display:none">
+          <label class="form-label fw-bold">Select Subject *</label>
+          <div class="row g-2" id="subjList"></div>
+        </div>
+      </div>
+
+      <div id="pickMsg" class="text-danger mt-2" style="font-size:.82rem;display:none">
+        <i class="fas fa-exclamation-circle me-1"></i>Please select a course type and subject.
+      </div>
+    </div>
+
+    <!-- STEP 4: Documents & Account -->
+    <div class="fstep" id="st4">
+      <div class="stitle"><i class="fas fa-file-upload"></i> Documents &amp; Account</div>
+      <div class="row g-3">
+        <div class="col-md-12">
+          <label class="form-label">Academic Certificate</label>
+          <input type="file" name="certificate_document" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+          <small class="text-muted">PDF or image</small>
+        </div>
+        <div class="col-12"><hr class="my-2"></div>
+        <div class="col-md-6">
+          <label class="form-label">Password *</label>
+          <div class="pw">
+            <input type="password" name="password1" id="p1" class="form-control" placeholder="Create a strong password" required>
+            <button type="button" class="pe" onclick="tp('p1')"><i class="fas fa-eye"></i></button>
+          </div>
+          <small class="text-muted">Min 8 chars, not too common</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Confirm Password *</label>
+          <div class="pw">
+            <input type="password" name="password2" id="p2" class="form-control" placeholder="Confirm your password" required>
+            <button type="button" class="pe" onclick="tp('p2')"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="alert alert-info" style="font-size:.8rem;border-radius:10px;margin:0">
+            <i class="fas fa-info-circle me-1"></i>After registration, admin will review and approve your account before you can login.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between mt-4 gap-2 flex-wrap">
+      <button type="button" class="btn-b" id="btnPrev" onclick="go(-1)" style="display:none">
+        <i class="fas fa-arrow-left me-1"></i> Back
+      </button>
+      <button type="button" class="btn-g ms-auto" id="btnNext" onclick="go(1)">
+        Next <i class="fas fa-arrow-right ms-1"></i>
+      </button>
+      <button type="submit" class="btn-g ms-auto" id="btnSub" style="display:none">
+        <i class="fas fa-paper-plane me-1"></i> Submit Registration
+      </button>
+    </div>
+  </form>
+
+  <div class="text-center mt-3">
+    <a href="{% url 'teacher_login' %}" style="font-size:.82rem;color:#888;text-decoration:none">
+      Already registered? <span style="color:#f5a623;font-weight:600">Login here</span>
+    </a>
+  </div>
+</div>
+</div>
+
+<script>
+var cur=1,tot=4;
+var labels=['Step 1 of 4 — Personal Information','Step 2 of 4 — Professional Information','Step 3 of 4 — Course Preference','Step 4 of 4 — Documents & Account'];
+
+// Validate required fields in current step before advancing
+function validateStep(step){
+  var errs=[];
+  if(step===1){
+    var req=['first_name','last_name','staff_id','email','phone'];
+    req.forEach(function(n){
+      var el=document.querySelector('[name="'+n+'"]');
+      if(el&&!el.value.trim()){errs.push(el.closest('.col-12,.col-md-6').querySelector('.form-label').textContent.replace('*','').trim());}
+      if(el&&!el.value.trim()){el.style.borderColor='#dc3545';}else if(el){el.style.borderColor='';}
+    });
+    var gender=document.querySelector('[name="gender"]');
+    if(gender&&!gender.value){errs.push('Gender');gender.style.borderColor='#dc3545';}else if(gender){gender.style.borderColor='';}
+  }
+  if(step===2){
+    var req2=['qualification','years_of_experience'];
+    req2.forEach(function(n){
+      var el=document.querySelector('[name="'+n+'"]');
+      if(el&&!el.value.trim()){errs.push(n.replace(/_/g,' '));el.style.borderColor='#dc3545';}else if(el){el.style.borderColor='';}
+    });
+  }
+  if(step===3){return chk3();}
+  if(step===4){
+    var p1=document.getElementById('p1'),p2=document.getElementById('p2');
+    if(!p1.value){errs.push('Password');p1.style.borderColor='#dc3545';}else{p1.style.borderColor='';}
+    if(!p2.value){errs.push('Confirm Password');p2.style.borderColor='#dc3545';}else{p2.style.borderColor='';}
+    if(p1.value&&p2.value&&p1.value!==p2.value){errs.push('Passwords do not match');p1.style.borderColor='#dc3545';p2.style.borderColor='#dc3545';}
+  }
+  if(errs.length>0){
+    showStepError('Please fill in: '+errs.join(', '));
+    return false;
+  }
+  clearStepError();
+  return true;
+}
+
+function showStepError(msg){
+  var e=document.getElementById('stepErr');
+  if(!e){e=document.createElement('div');e.id='stepErr';e.style.cssText='background:#fff3f3;border:1px solid #f5c6cb;border-radius:10px;padding:.7rem 1rem;font-size:.82rem;color:#721c24;margin-bottom:.8rem;';document.getElementById('rf').insertBefore(e,document.getElementById('rf').firstChild);}
+  e.innerHTML='<i class="fas fa-exclamation-circle me-2"></i>'+msg;
+  e.style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function clearStepError(){
+  var e=document.getElementById('stepErr');
+  if(e)e.style.display='none';
+}
+
+function go(d){
+  if(d===1&&!validateStep(cur))return;
+  var n=cur+d;if(n<1||n>tot)return;
+  clearStepError();
+  document.getElementById('st'+cur).classList.remove('active');
+  document.getElementById('s'+cur).classList.remove('on');
+  document.getElementById('s'+cur).classList.add('dn');
+  cur=n;
+  document.getElementById('st'+cur).classList.add('active');
+  document.getElementById('s'+cur).classList.add('on');
+  document.getElementById('slb').textContent=labels[cur-1];
+  document.getElementById('btnPrev').style.display=cur>1?'inline-block':'none';
+  document.getElementById('btnNext').style.display=cur<tot?'inline-block':'none';
+  document.getElementById('btnSub').style.display=cur===tot?'inline-block':'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function chk3(){
+  var ct=document.getElementById('hct').value;
+  var s=document.getElementById('hs').value;
+  if(!ct||!s){document.getElementById('pickMsg').style.display='block';return false;}
+  return true;
+}
+
+function pickType(t){
+  document.getElementById('hct').value=t;
+  document.getElementById('hs').value='';
+  document.getElementById('hd').value='';
+  document.getElementById('tc_el').classList.toggle('pk',t==='core');
+  document.getElementById('tc_dp').classList.toggle('pk',t==='departmental');
+  document.getElementById('elSec').style.display=t==='core'?'block':'none';
+  document.getElementById('dpSec').style.display=t==='departmental'?'block':'none';
+  document.getElementById('subjGrid').style.display='none';
+  document.getElementById('pickMsg').style.display='none';
+  document.querySelectorAll('.sc.pk').forEach(function(e){e.classList.remove('pk');});
+}
+
+function pickSubj(val,el){
+  document.querySelectorAll('#elSec .sc').forEach(function(e){e.classList.remove('pk');});
+  el.classList.add('pk');
+  document.getElementById('hs').value=val;
+  document.getElementById('pickMsg').style.display='none';
+}
+
+var DS={
+  information_technology:[['computer_system_servicing','Computer System & Servicing'],['workshop_practice_power','Workshop Practice & Power Mgmt'],['networking_data_comm','Networking & Data Communication']],
+  plumbing:[['plumbing_general','Plumbing (General)'],['plumbing_installation','Plumbing Installation'],['plumbing_maintenance','Plumbing Maintenance']],
+  electricals:[['electrical_installation','Electrical Installation'],['electrical_maintenance','Electrical Maintenance'],['electrical_wiring','Electrical Wiring']],
+  welding_fabrication:[['welding_fabrication','Welding & Fabrication'],['metal_work','Metal Work']],
+  fashion:[['fashion_design','Fashion Design'],['garment_construction','Garment Construction'],['textile_studies','Textile Studies']],
+  catering:[['catering_general','Catering (General)'],['food_beverage','Food & Beverage'],['hospitality','Hospitality Management']],
+  mechanical_engineering:[['mechanical_engineering','Mechanical Engineering'],['machine_maintenance','Machine Maintenance']],
+  auto_mechanics:[['auto_mechanics','Auto Mechanics'],['auto_electrical','Auto Electrical']],
+  building_construction:[['building_construction','Building & Construction'],['masonry','Masonry'],['carpentry','Carpentry']]
+};
+
+function pickDept(val,el){
+  document.querySelectorAll('#deptGrid .sc').forEach(function(e){e.classList.remove('pk');});
+  el.classList.add('pk');
+  document.getElementById('hd').value=val;
+  document.getElementById('hs').value='';
+  var subs=DS[val]||[];
+  document.getElementById('subjList').innerHTML=subs.map(function(s){
+    return '<div class="col-md-4 col-6"><div class="sc" onclick="pickDS(\''+s[0]+'\',this)"><i class="fas fa-circle" style="font-size:.4rem;color:#f5a623"></i>'+s[1]+'</div></div>';
+  }).join('');
+  document.getElementById('subjGrid').style.display='block';
+  document.getElementById('pickMsg').style.display='none';
+}
+
+function pickDS(val,el){
+  document.querySelectorAll('#subjList .sc').forEach(function(e){e.classList.remove('pk');});
+  el.classList.add('pk');
+  document.getElementById('hs').value=val;
+  document.getElementById('pickMsg').style.display='none';
+}
+
+function tp(id){var e=document.getElementById(id);e.type=e.type==='password'?'text':'password';}
+
+// Restore state if form returned with errors
+(function(){
+  var ct=document.getElementById('hct').value;
+  var dept=document.getElementById('hd').value;
+  if(ct){
+    pickType(ct);
+    if(ct==='departmental'&&dept){
+      var el=document.querySelector('#deptGrid .sc[onclick*="'+dept+'"]');
+      if(el)pickDept(dept,el);
+    }
+  }
+  {% if form.errors %}
+  // Jump to the step with errors
+  var hasStep4='{% if form.password1.errors or form.password2.errors %}yes{% endif %}';
+  var hasStep3='{% if form.preferred_subject.errors or form.course_type.errors %}yes{% endif %}';
+  var hasStep2='{% if form.qualification.errors or form.specialization.errors %}yes{% endif %}';
+  if(hasStep4==='yes'){while(cur<4)go(1);}
+  else if(hasStep3==='yes'){while(cur<3)go(1);}
+  else if(hasStep2==='yes'){while(cur<2)go(1);}
+  {% endif %}
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends base_template %}
+{% block title %}HOD Record — WTI{% endblock %}
+{% block page_title %}HOD Record{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="h4 mb-0">{{ hod.full_name }}</h2>
+    <a class="btn btn-outline-primary" href="{% if role == 'admin' %}{% url 'admin_hod_manage' hod.pk %}{% else %}{% url 'superadmin_hod_manage' hod.pk %}{% endif %}">Edit HOD</a>
+  </div>
+  <div class="card">
+    <dl class="row card-body mb-0">
+      <dt class="col-sm-4">HOD Staff ID</dt><dd class="col-sm-8">{{ hod.staff_id|default:'—' }}</dd>
+      <dt class="col-sm-4">Full name</dt><dd class="col-sm-8">{{ hod.full_name }}</dd>
+      <dt class="col-sm-4">Username</dt><dd class="col-sm-8">{{ hod.user.username }}</dd>
+      <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ hod.user.email }}</dd>
+      <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ hod.phone|default:'—' }}</dd>
+      <dt class="col-sm-4">Programme</dt><dd class="col-sm-8">{{ hod.programme|default:'Unassigned' }}</dd>
+      <dt class="col-sm-4">Status</dt><dd class="col-sm-8">{% if hod.is_active and hod.user.is_active %}Active{% else %}Inactive{% endif %}</dd>
+      <dt class="col-sm-4">Created</dt><dd class="col-sm-8">{{ hod.created_at }}</dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

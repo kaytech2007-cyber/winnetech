@@ -1,0 +1,50 @@
+{% extends 'hod/base_hod.html' %}
+{% block portal_title %}Facilitators — {{ programme.name }}{% endblock %}
+{% block page_heading %}Programme Facilitators{% endblock %}
+{% block nav_facilitators %}active{% endblock %}
+
+{% block content %}
+<div class="hod-card">
+  <p class="text-muted">This list is restricted to {{ programme.name }} ({{ programme.code }}).</p>
+  <div class="hod-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Facilitator</th><th>Staff ID</th><th>Type</th><th>Internship dates</th><th>Supervisor</th><th>Account</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for teacher in facilitators %}
+        <tr>
+          <td>{{ teacher.full_name }}</td>
+          <td>{{ teacher.staff_id }}</td>
+          <td>{% if teacher.facilitator_profile %}{{ teacher.facilitator_profile.get_employment_type_display }}{% else %}Not set{% endif %}</td>
+          <td>
+            {% if teacher.facilitator_profile.employment_type == 'INTERNSHIP' %}
+              {{ teacher.facilitator_profile.internship_start_date|default:'Not set' }} – {{ teacher.facilitator_profile.internship_end_date|default:'Not set' }}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if teacher.facilitator_profile.supervisor %}
+              {{ teacher.facilitator_profile.supervisor.teacher.full_name }}
+            {% else %}—{% endif %}
+          </td>
+          <td>{% if teacher.user.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'hod_facilitator_manage' teacher.pk %}">Manage</a>
+            <form class="d-inline" method="post" action="{% url 'hod_facilitator_status' teacher.pk %}">
+              {% csrf_token %}
+              {% if teacher.user.is_active %}
+                <input type="hidden" name="action" value="deactivate">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Deactivate</button>
+              {% else %}
+                <input type="hidden" name="action" value="reactivate">
+                <button class="btn btn-sm btn-outline-success" type="submit">Reactivate</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted text-center">No facilitators are assigned to this programme.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

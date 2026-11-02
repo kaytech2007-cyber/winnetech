@@ -1,0 +1,37 @@
+{% extends base_template %}
+{% block title %}Internship Extensions — WTI{% endblock %}
+{% block page_title %}Internship Extensions{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="h4 mb-3">Internship extension requests</h2>
+  <div class="table-responsive bg-white rounded shadow-sm p-3">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Intern</th><th>Programme</th><th>Current end date</th><th>Requested end date</th><th>Reason</th><th>Status</th><th>Requested by</th><th>Decision</th></tr></thead>
+      <tbody>
+      {% for extension in extensions %}
+        <tr>
+          <td>{{ extension.internship.full_name }}</td><td>{{ extension.internship.programme.name }}</td>
+          <td>{{ extension.old_end_date }}</td><td>{{ extension.new_end_date }}</td><td>{{ extension.reason|default:'—' }}</td>
+          <td>{{ extension.get_status_display }}</td>
+          <td>{{ extension.requested_by.get_full_name|default:extension.requested_by.username|default:'—' }}</td>
+          <td>
+            {% if role != 'hod' and extension.status == 'REQUESTED' %}
+              <form method="post" action="{% if role == 'admin' %}{% url 'admin_extension_decision' extension.pk %}{% else %}{% url 'superadmin_extension_decision' extension.pk %}{% endif %}" class="d-flex gap-1">
+                {% csrf_token %}<button class="btn btn-sm btn-success" name="action" value="approve" type="submit">Approve</button><button class="btn btn-sm btn-outline-danger" name="action" value="reject" type="submit">Reject</button>
+              </form>
+            {% else %}{{ extension.approved_by.get_full_name|default:extension.approved_by.username|default:'Pending' }}{% endif %}
+          </td>
+        </tr>
+      {% empty %}<tr><td colspan="8" class="text-center text-muted">No internship extension records are available.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if extensions.paginator.num_pages > 1 %}
+  <nav class="mt-3" aria-label="Extension request pagination">
+    {% if extensions.has_previous %}<a class="btn btn-sm btn-outline-primary" href="?page={{ extensions.previous_page_number }}">Previous</a>{% endif %}
+    <span class="small mx-2">Page {{ extensions.number }} of {{ extensions.paginator.num_pages }}</span>
+    {% if extensions.has_next %}<a class="btn btn-sm btn-outline-primary" href="?page={{ extensions.next_page_number }}">Next</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

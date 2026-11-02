@@ -1,0 +1,13 @@
+{% extends 'hod/base_hod.html' %}
+{% block page_heading %}Programme Timetable{% endblock %}
+{% block content %}
+{% for day, entries in timetable_by_day %}
+  <div class="hod-card mb-3">
+    <h2>{{ day|title }}</h2>
+    <div class="hod-table-wrap"><table class="table mb-0"><thead><tr><th>Time</th><th>Facilitator</th><th>Course</th><th>Room</th></tr></thead><tbody>
+      {% for entry in entries %}<tr><td>{{ entry.start_time }}–{{ entry.end_time }}</td><td>{{ entry.teacher.full_name|default:'—' }}</td><td>{{ entry.subject }}</td><td>{{ entry.room|default:'—' }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="text-center text-muted">No programme timetable entries for this day.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+{% endfor %}
+{% endblock %}

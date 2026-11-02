@@ -1,0 +1,76 @@
+{% extends 'hod/base_hod.html' %}
+{% block portal_title %}Manage {{ teacher.full_name }} — HOD Portal{% endblock %}
+{% block page_heading %}Manage Facilitator{% endblock %}
+{% block nav_facilitators %}active{% endblock %}
+
+{% block content %}
+<div class="hod-card mb-3">
+  <h2>{{ teacher.full_name }}</h2>
+  <p class="mb-1">Staff ID: {{ teacher.staff_id }}</p>
+  <p class="mb-0">Programme: {{ programme.name }} ({{ programme.code }})</p>
+</div>
+<div class="hod-card mb-3">
+  <h2>Employment and Supervision</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Save changes</button>
+    <a class="btn btn-outline-secondary" href="{% url 'hod_facilitators' %}">Cancel</a>
+  </form>
+</div>
+{% if extension_form %}
+<div class="hod-card mb-3">
+  <h2>Request an Internship Extension</h2>
+  <p class="text-muted">The current end date is {{ facilitator.internship_end_date|default:'not recorded' }}. The extension takes effect only after Admin or Super Admin approval.</p>
+  <form method="post" action="{% url 'hod_extension_request' facilitator.pk %}">
+    {% csrf_token %}
+    {% for field in extension_form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-outline-primary" type="submit">Submit extension request</button>
+    <a class="btn btn-link" href="{% url 'hod_extension_requests' %}">View extension history</a>
+  </form>
+</div>
+{% endif %}
+{% if facilitator.pk %}
+<div class="hod-card">
+  <h2>Supervision History</h2>
+  <div class="hod-table-wrap">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Supervisor</th><th>From</th><th>To</th><th>Status</th><th>Changed by</th></tr></thead>
+      <tbody>
+        {% for assignment in supervision_history %}
+        <tr>
+          <td>{{ assignment.supervisor.teacher.full_name }}</td>
+          <td>{{ assignment.start_date }}</td>
+          <td>{{ assignment.end_date|default:'Current' }}</td>
+          <td>{% if assignment.is_active %}Active{% else %}Ended{% endif %}</td>
+          <td>{{ assignment.changed_by.get_full_name|default:assignment.changed_by.username|default:'—' }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="text-muted text-center">No supervision changes recorded.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% if facilitator.pk and facilitator.employment_type == 'INTERNSHIP' %}
+<div class="hod-card mt-3">
+  <h2>Internship Extension History</h2>
+  {% for extension in facilitator.extensions.all %}
+    <p class="mb-1">{{ extension.old_end_date }} → {{ extension.new_end_date }} · {{ extension.get_status_display }}{% if extension.reason %} · {{ extension.reason }}{% endif %}</p>
+  {% empty %}<p class="text-muted mb-0">No extension records.</p>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

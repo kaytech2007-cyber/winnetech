@@ -1,0 +1,11 @@
+{% extends 'teacher/base_teacher.html' %}
+{% block title %}My Attendance — Facilitator Portal{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
+{% block content %}
+<div class="page-header"><h2>My Attendance</h2><p class="text-muted">Your personal attendance history.</p></div>
+<div class="table-responsive bg-white rounded shadow-sm p-3"><table class="table table-hover"><thead><tr><th>Date</th><th>School status</th><th>Check-in</th><th>Lesson status</th><th>Lesson time</th></tr></thead><tbody>
+{% for record in attendance %}<tr><td>{{ record.date }}</td><td>{{ record.get_school_status_display }}</td><td>{{ record.check_in_time|default:'—' }}</td><td>{{ record.get_lesson_status_display }}</td><td>{{ record.lesson_done_time|default:'—' }}</td></tr>
+{% empty %}<tr><td colspan="5" class="text-center text-muted">No attendance records are available.</td></tr>{% endfor %}
+</tbody></table></div>
+{% if attendance.paginator.num_pages > 1 %}<nav class="mt-3">{% if attendance.has_previous %}<a href="?page={{ attendance.previous_page_number }}">Previous</a>{% endif %} Page {{ attendance.number }} of {{ attendance.paginator.num_pages }} {% if attendance.has_next %}<a href="?page={{ attendance.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+{% endblock %}

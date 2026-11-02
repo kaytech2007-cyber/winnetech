@@ -1,0 +1,134 @@
+{% extends 'hod/base_hod.html' %}
+{% block portal_title %}{{ programme.name }} HOD Dashboard — WTI{% endblock %}
+{% block page_heading %}{{ programme.name }} Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="hod-card"><h2>Programme</h2><div class="hod-stat">{{ programme.code }}</div><div>{{ programme.name }}</div></div></div>
+  <div class="col-md-4"><div class="hod-card"><h2>Permanent Facilitators</h2><div class="hod-stat">{{ permanent_count }}</div></div></div>
+  <div class="col-md-4"><div class="hod-card"><h2>Internship Facilitators</h2><div class="hod-stat">{{ internship_count }}</div></div></div>
+</div>
+
+<div class="hod-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Internship Facilitators</h2>
+    <a href="{% url 'hod_facilitators' %}">Manage facilitators</a>
+  </div>
+  <div class="hod-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Facilitator</th><th>Staff ID</th><th>Start</th><th>End</th><th>Permanent Supervisor</th></tr></thead>
+      <tbody>
+        {% for facilitator in internships %}
+        <tr>
+          <td>{{ facilitator.teacher.full_name }}</td>
+          <td>{{ facilitator.teacher.staff_id }}</td>
+          <td>{{ facilitator.internship_start_date|default:'Not set' }}</td>
+          <td>{{ facilitator.internship_end_date|default:'Not set' }}</td>
+          <td>{% if facilitator.supervisor %}{{ facilitator.supervisor.teacher.full_name }}{% else %}Not assigned{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted text-center">No internship facilitators are recorded for this programme.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="hod-card mb-4">
+  <h2>Facilitator attendance, availability and workload</h2>
+  <p class="small text-muted">
+    Attendance reflects recorded evidence. Availability is unverified because the system does not yet collect Facilitator availability responses; a notification or timetable assignment is not confirmation.
+  </p>
+  <div class="hod-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Facilitator</th>
+          <th>Staff ID</th>
+          <th>Type</th>
+          <th>Attendance / check-in</th>
+          <th>Availability</th>
+          <th>Weekly workload</th>
+          <th>Assignments next 7 days</th>
+          <th>Timetable conflicts</th>
+          <th>Supervision</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in availability_rows %}
+        <tr>
+          <td>{{ row.teacher.full_name }}</td>
+          <td>{{ row.teacher.staff_id }}</td>
+          <td>{{ row.employment_type }}</td>
+          <td>
+            {{ row.attendance_status }}
+            {% if row.check_in_time %}<br><small class="text-muted">{{ row.check_in_time }}</small>{% endif %}
+          </td>
+          <td>
+            <span class="badge bg-warning text-dark">{{ row.availability_status }}</span>
+            <br><small class="text-muted">{{ row.availability_reason }}</small>
+          </td>
+          <td>{{ row.weekly_class_count }} classes / {{ row.weekly_minutes }} minutes</td>
+          <td>{{ row.upcoming_class_count }}</td>
+          <td>
+            {% for conflict in row.conflicts %}
+              <div class="text-danger small">{{ conflict }}</div>
+            {% empty %}
+              <span class="text-muted">No timetable overlap detected</span>
+            {% endfor %}
+          </td>
+          <td>{{ row.supervision }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted">No Facilitator records are assigned to this programme.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="hod-card mb-4">
+  <h2>Scheduled class assignments — next 7 days</h2>
+  <p class="small text-muted">These are saved assignments, not Facilitator confirmations.</p>
+  <div class="hod-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Date</th><th>Time</th><th>Facilitator</th><th>Class</th><th>Response</th></tr></thead>
+      <tbody>
+        {% for schedule in upcoming_class_schedules %}
+        <tr>
+          <td>{{ schedule.scheduled_date }}</td>
+          <td>{{ schedule.timetable_entry.start_time }}–{{ schedule.timetable_entry.end_time }}</td>
+          <td>{{ schedule.teacher.full_name }}</td>
+          <td>{{ schedule.timetable_entry.subject }}</td>
+          <td>Not recorded</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">No class assignments are saved for the next 7 days.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="hod-card">
+  <h2>Today’s Timetable — {{ today }}</h2>
+  <div class="hod-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Time</th><th>Facilitator</th><th>Course / Class</th><th>Room</th></tr></thead>
+      <tbody>
+        {% for entry in timetable %}
+        <tr>
+          <td>{{ entry.start_time }}–{{ entry.end_time }}</td>
+          <td>{{ entry.teacher.full_name }}</td>
+          <td>{{ entry.subject }}</td>
+          <td>{{ entry.room|default:'—' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted text-center">No timetable entries are assigned to facilitators in this programme today.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

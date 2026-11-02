@@ -1,0 +1,63 @@
+{% extends base_template %}
+{% block title %}{{ programme.name }} — WTI{% endblock %}
+{% block page_title %}Programme Details{% endblock %}
+{% block page_heading %}Programme Information{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="h4 mb-0">{{ programme.name }}</h2>
+    {% if role != 'hod' %}
+      <a class="btn btn-outline-primary" href="{% if role == 'admin' %}{% url 'admin_programme_manage' programme.pk %}{% else %}{% url 'superadmin_programme_manage' programme.pk %}{% endif %}">Edit programme</a>
+    {% endif %}
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card h-100"><div class="card-body"><small class="text-muted">Code</small><div class="h5">{{ programme.code }}</div></div></div></div>
+    <div class="col-md-3"><div class="card h-100"><div class="card-body"><small class="text-muted">Category</small><div class="h5">{{ programme.get_category_display }}</div></div></div></div>
+    <div class="col-md-3"><div class="card h-100"><div class="card-body"><small class="text-muted">Active Facilitators</small><div class="h5">{{ active_count }}</div></div></div></div>
+    <div class="col-md-3"><div class="card h-100"><div class="card-body"><small class="text-muted">Inactive Facilitators</small><div class="h5">{{ inactive_count }}</div></div></div></div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Programme information</div>
+    <div class="card-body">
+      <p>{{ programme.description|default:'No programme description has been recorded.' }}</p>
+      <p class="mb-1">Status: {% if programme.is_active %}Active{% else %}Inactive{% endif %}</p>
+      <p class="mb-1">Created: {{ programme.created_at }}</p>
+      <p class="mb-0">Last updated: {{ programme.updated_at }}</p>
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Assigned HOD</div>
+    <div class="card-body">
+      {% if programme.hod_profile %}
+        {{ programme.hod_profile.full_name }} · {{ programme.hod_profile.user.username }} · {{ programme.hod_profile.user.email }}
+      {% else %}No HOD is assigned.{% endif %}
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Permanent Facilitators</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Staff ID</th><th>Name</th><th>Username</th><th>Status</th><th>Interns supervised</th></tr></thead><tbody>
+      {% for facilitator in permanent_facilitators %}
+        <tr><td>{{ facilitator.teacher.staff_id }}</td><td>{{ facilitator.full_name }}</td><td>{{ facilitator.teacher.user.username }}</td><td>{% if facilitator.is_active and facilitator.teacher.user.is_active %}Active{% else %}Inactive{% endif %}</td><td>{{ facilitator.supervised_intern_count }}</td></tr>
+      {% empty %}<tr><td colspan="5" class="text-center text-muted">No Permanent Facilitators are assigned.</td></tr>{% endfor %}
+      {% for teacher in legacy_facilitators %}<tr><td>{{ teacher.staff_id }}</td><td>{{ teacher.full_name }}</td><td>{{ teacher.user.username }}</td><td>{% if teacher.user.is_active %}Active{% else %}Inactive{% endif %}</td><td>—</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Internship Facilitators</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Staff ID</th><th>Name</th><th>Supervisor</th><th>Dates</th><th>Status</th></tr></thead><tbody>
+      {% for facilitator in internship_facilitators %}
+        <tr><td>{{ facilitator.teacher.staff_id }}</td><td>{{ facilitator.full_name }}</td><td>{{ facilitator.supervisor.full_name|default:'Not assigned' }}</td><td>{{ facilitator.internship_start_date|default:'—' }} – {{ facilitator.internship_end_date|default:'—' }}</td><td>{% if facilitator.is_active and facilitator.teacher.user.is_active %}Active{% else %}Inactive{% endif %}</td></tr>
+      {% empty %}<tr><td colspan="5" class="text-center text-muted">No Internship Facilitators are assigned.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Internship supervision</div>
+    <div class="card-body">
+      <p>Active supervision assignments: {{ active_supervision_count }}</p>
+      <p class="mb-2">Internships nearing expiry (within 30 days): {{ expiring_internships|length }}</p>
+      {% for internship in expiring_internships %}<div>{{ internship.full_name }} — {{ internship.internship_end_date }}</div>{% endfor %}
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% if role == 'hod' %}{% url 'hod_dashboard' %}{% elif role == 'admin' %}{% url 'admin_programmes' %}{% else %}{% url 'superadmin_programmes' %}{% endif %}">Back to programmes</a>
+</div>
+{% endblock %}

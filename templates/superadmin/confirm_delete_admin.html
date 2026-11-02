@@ -1,0 +1,20 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}Delete Admin — WTI{% endblock %}
+{% block page_title %}Delete Admin{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-5">
+  <div class="sa-card">
+    <div class="sa-card-header" style="background:linear-gradient(135deg,#dc3545,#c82333)"><h5 style="color:#fff"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete Admin</h5></div>
+    <div style="padding:2rem;text-align:center">
+      <div style="width:70px;height:70px;background:rgba(220,53,69,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem"><i class="fas fa-user-times" style="font-size:1.8rem;color:#dc3545"></i></div>
+      <h5 style="font-weight:700;color:#001f5c">Delete {{ admin_user.get_full_name|default:admin_user.username }}?</h5>
+      <p style="color:#888;font-size:.85rem">Username: <strong>{{ admin_user.username }}</strong></p>
+      <div class="alert alert-danger" style="font-size:.82rem;border-radius:10px;text-align:left"><i class="fas fa-exclamation-circle me-2"></i>This admin will permanently lose access to the system.</div>
+      <div style="display:flex;gap:.8rem;justify-content:center;margin-top:1rem">
+        <a href="{% url 'superadmin_admins' %}" class="btn btn-outline-secondary rounded-3 px-4"><i class="fas fa-arrow-left me-2"></i>Cancel</a>
+        <form method="post" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger rounded-3 px-4" style="font-weight:700"><i class="fas fa-trash me-2"></i>Yes, Delete</button></form>
+      </div>
+    </div>
+  </div>
+</div></div>
+{% endblock %}

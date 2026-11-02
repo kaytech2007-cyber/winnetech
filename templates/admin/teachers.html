@@ -1,0 +1,98 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Facilitators — WTI Admin{% endblock %}
+{% block page_title %}Facilitator Management{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+{% block mob_teachers %}active{% endblock %}
+
+{% block content %}
+<div class="wti-card">
+  <div class="wti-card-header">
+    <h5><i class="fas fa-chalkboard-teacher"></i> All Facilitators ({{ teachers.count }})</h5>
+    <div class="d-flex gap-2">
+      <input type="text" id="searchInput" class="form-control" placeholder="Search facilitators..." style="width:220px;font-size:0.85rem" oninput="filterTable()">
+    </div>
+  </div>
+  <div class="wti-card-body p-0">
+    <div class="table-responsive">
+      <table class="wti-table" id="teachersTable">
+        <thead>
+          <tr>
+            <th>Facilitator</th>
+            <th>Staff ID</th>
+            <th>Contact</th>
+            <th>Course Type</th>
+            <th>Subject</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in teachers %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="teacher-avatar">
+                  {% if t.profile_photo %}
+                    <img src="{{ t.profile_photo.url }}" alt="">
+                  {% else %}
+                    {{ t.user.first_name|first }}{{ t.user.last_name|first }}
+                  {% endif %}
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:0.88rem">{{ t.full_name }}</div>
+                  <small class="text-muted">{{ t.user.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td><code style="font-size:0.82rem">{{ t.staff_id }}</code></td>
+            <td style="font-size:0.82rem">{{ t.phone }}</td>
+            <td>
+              <span class="status-badge {{ t.course_type }}">{{ t.get_course_type_display }}</span>
+            </td>
+            <td style="font-size:0.82rem">{{ t.preferred_subject|title|truncatechars:25 }}</td>
+            <td>
+              {% if t.is_approved %}
+                <span class="status-badge approved"><i class="fas fa-check-circle"></i> Approved</span>
+              {% else %}
+                <span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1 flex-wrap">
+                <a href="{% url 'teacher_detail' t.id %}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:0.75rem" title="View">
+                  <i class="fas fa-eye"></i>
+                </a>
+                {% if not t.is_approved %}
+                <form method="post" action="{% url 'approve_teacher' t.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success rounded-pill" style="font-size:0.75rem" title="Approve">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'delete_teacher' t.id %}" class="btn btn-sm btn-danger rounded-pill" style="font-size:0.75rem" title="Deactivate Facilitator">
+                  <i class="fas fa-user-slash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No facilitators registered yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#teachersTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

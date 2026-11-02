@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Facilitator Login — WTI{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="{% static 'images/logo.png' %}" alt="WTI Logo">
+      <h4>Facilitator Login</h4>
+      <p>Enter your Staff ID to access your portal</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger auto-dismiss alert-dismissible fade show" style="font-size:.83rem;border-radius:10px">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label"><i class="fas fa-id-badge me-1" style="color:#003087"></i> Staff ID</label>
+        <input type="text" name="staff_id" class="form-control" placeholder="e.g. WTI0001" required autofocus autocomplete="off" style="text-transform:uppercase;letter-spacing:1px;font-weight:600">
+        <small class="text-muted">Enter your Staff ID (e.g. WTI0001)</small>
+      </div>
+      <div class="mb-4">
+        <label class="form-label"><i class="fas fa-lock me-1" style="color:#003087"></i> Password</label>
+        <div class="position-relative">
+          <input type="password" name="password" id="teacherPass" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+          <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-muted" onclick="var e=document.getElementById('teacherPass');e.type=e.type=='password'?'text':'password'">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-gold w-100 py-3 rounded-3">
+        <i class="fas fa-sign-in-alt me-2"></i> Login with Staff ID
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{% url 'welcome' %}" class="text-muted text-decoration-none" style="font-size:0.82rem">
+        <i class="fas fa-arrow-left me-1"></i> Back to Welcome Page
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePass(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/pwa.js' %}"></script>{% endblock %}

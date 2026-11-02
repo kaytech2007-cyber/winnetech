@@ -1,0 +1,222 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% block title %}Admin Dashboard — WTI{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block mob_dashboard %}active{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md">
+    <div class="stat-card"><div class="stat-icon gold"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="stat-info"><h3>{{ total_teachers }}</h3><p>Total Facilitators</p></div></div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+    <div class="stat-info"><h3>{{ present_count }}</h3><p>Present Today</p></div></div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card"><div class="stat-icon red"><i class="fas fa-user-times"></i></div>
+    <div class="stat-info"><h3>{{ absent_count }}</h3><p>Confirmed Absent</p></div></div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-circle-question"></i></div>
+    <div class="stat-info"><h3>{{ unverified_count }}</h3><p>Unverified Today</p></div></div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+    <div class="stat-info"><h3>{{ pending_teachers.count }}</h3><p>Pending Approval</p></div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Departments Grid -->
+  <div class="col-lg-8">
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-building"></i> Departments — Click to View Facilitators</h5>
+        <small class="text-muted" style="font-size:.75rem">{{ today }}</small>
+      </div>
+      <div style="padding:1rem">
+        <div class="row g-2">
+          <!-- Core Subjects -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'core' %}" style="display:block;background:linear-gradient(135deg,#003087,#0047b3);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-book" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Core Subjects</div>
+              <div style="font-size:.72rem;opacity:.7">Maths, English, Science...</div>
+            </a>
+          </div>
+          <!-- IT -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'information_technology' %}" style="display:block;background:linear-gradient(135deg,#6f42c1,#5a32a3);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-desktop" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Information Technology</div>
+              <div style="font-size:.72rem;opacity:.7">Computer, Networking...</div>
+            </a>
+          </div>
+          <!-- Electricals -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'electricals' %}" style="display:block;background:linear-gradient(135deg,#ffc107,#e0a800);color:#000;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-bolt" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Electricals</div>
+              <div style="font-size:.72rem;opacity:.7">Installation, Wiring...</div>
+            </a>
+          </div>
+          <!-- Plumbing -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'plumbing' %}" style="display:block;background:linear-gradient(135deg,#00d4ff,#0099cc);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-faucet" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Plumbing</div>
+              <div style="font-size:.72rem;opacity:.7">Installation, Maintenance...</div>
+            </a>
+          </div>
+          <!-- Welding -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'welding_fabrication' %}" style="display:block;background:linear-gradient(135deg,#fd7e14,#e06c00);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-fire" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Welding & Fabrication</div>
+              <div style="font-size:.72rem;opacity:.7">Metal Work...</div>
+            </a>
+          </div>
+          <!-- Fashion -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'fashion' %}" style="display:block;background:linear-gradient(135deg,#e83e8c,#c0306e);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-tshirt" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Fashion</div>
+              <div style="font-size:.72rem;opacity:.7">Design, Garment...</div>
+            </a>
+          </div>
+          <!-- Catering -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'catering' %}" style="display:block;background:linear-gradient(135deg,#28a745,#1e7e34);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-utensils" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Catering</div>
+              <div style="font-size:.72rem;opacity:.7">Food, Hospitality...</div>
+            </a>
+          </div>
+          <!-- Mechanical -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'mechanical_engineering' %}" style="display:block;background:linear-gradient(135deg,#6c757d,#545b62);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-cogs" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Mechanical Eng.</div>
+              <div style="font-size:.72rem;opacity:.7">Machines, Maintenance...</div>
+            </a>
+          </div>
+          <!-- Auto Mechanics -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'auto_mechanics' %}" style="display:block;background:linear-gradient(135deg,#dc3545,#b02a37);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-car" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Auto Mechanics</div>
+              <div style="font-size:.72rem;opacity:.7">Auto Electrical...</div>
+            </a>
+          </div>
+          <!-- Building -->
+          <div class="col-md-4 col-6">
+            <a href="{% url 'admin_department_view' 'building_construction' %}" style="display:block;background:linear-gradient(135deg,#f5a623,#e8920a);color:#fff;border-radius:12px;padding:1rem;text-decoration:none;transition:transform .2s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-hard-hat" style="font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.8"></i>
+              <div style="font-weight:700;font-size:.88rem">Building & Construction</div>
+              <div style="font-size:.72rem;opacity:.7">Masonry, Carpentry...</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Timetable -->
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-calendar-day"></i> Today's Timetable</h5>
+        <a href="{% url 'admin_timetable' %}" class="btn-outline-gold" style="font-size:.78rem">Manage</a>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="wti-table">
+          <thead><tr><th>Time</th><th>Subject</th><th>Facilitator</th><th>Type</th></tr></thead>
+          <tbody>
+            {% for e in today_timetable %}
+            <tr>
+              <td style="font-size:.8rem;color:#888;white-space:nowrap">{{ e.start_time|time:"H:i" }} – {{ e.end_time|time:"H:i" }}</td>
+              <td>{% if e.is_break %}<span class="text-muted"><i class="fas fa-coffee me-1"></i>{{ e.subject }}</span>{% else %}<strong>{{ e.subject }}</strong>{% endif %}</td>
+              <td style="font-size:.82rem">{{ e.teacher.full_name|default:"—" }}</td>
+              <td>{% if not e.is_break %}<span class="status-badge {{ e.course_type }}" style="font-size:.7rem">{{ e.get_course_type_display|default:"—" }}</span>{% endif %}</td>
+            </tr>
+            {% empty %}<tr><td colspan="4" class="text-center text-muted py-3" style="font-size:.83rem">No timetable for today</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: QR + Pending + Notifications -->
+  <div class="col-lg-4">
+    <!-- QR Codes -->
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-qrcode"></i> QR Codes</h5>
+        <div>
+          <a href="{% url 'admin_qr_view' %}" class="btn-outline-gold" style="font-size:.78rem">View All</a>
+        </div>
+      </div>
+      <div style="padding:1rem">
+        {% if school_qr %}
+        <div style="text-align:center;margin-bottom:.8rem;padding-bottom:.8rem;border-bottom:1px solid #f0f2f5">
+          <div style="font-size:.72rem;font-weight:700;color:#003087;text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem"><i class="fas fa-school me-1"></i>School Attendance</div>
+          {% if school_qr.qr_image %}<img src="{{ school_qr.qr_image.url }}" style="max-width:110px;border-radius:8px;border:2px solid #003087">{% endif %}
+          <div style="font-size:.7rem;color:#888;margin-top:.3rem">Valid until {{ school_qr.valid_until }}</div>
+        </div>
+        {% endif %}
+        {% if lesson_qr %}
+        <div style="text-align:center">
+          <div style="font-size:.72rem;font-weight:700;color:#28a745;text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem"><i class="fas fa-book me-1"></i>Lesson</div>
+          {% if lesson_qr.qr_image %}<img src="{{ lesson_qr.qr_image.url }}" style="max-width:110px;border-radius:8px;border:2px solid #28a745">{% endif %}
+          <div style="font-size:.7rem;color:#888;margin-top:.3rem">Valid until {{ lesson_qr.valid_until }}</div>
+        </div>
+        {% endif %}
+        {% if not school_qr and not lesson_qr %}
+        <div style="text-align:center;padding:1rem;color:#888;font-size:.82rem">
+          <i class="fas fa-qrcode" style="font-size:2rem;color:#ddd"></i>
+          <p class="mt-2">No QR codes yet.<br>Contact Super Admin.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pending Approvals -->
+    {% if pending_teachers %}
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-user-clock"></i> Pending Approvals</h5>
+        <span style="background:#ffc107;color:#000;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px">{{ pending_teachers.count }}</span>
+      </div>
+      <div style="padding:0">
+        {% for t in pending_teachers %}
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.7rem 1.2rem;border-bottom:1px solid #f8f9fa">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8920a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.75rem;flex-shrink:0">{{ t.user.first_name|first|upper }}{{ t.user.last_name|first|upper }}</div>
+          <div style="flex:1"><div style="font-size:.82rem;font-weight:600">{{ t.full_name }}</div><small style="color:#888">{{ t.get_course_type_display }}</small></div>
+          <form method="post" action="{% url 'approve_teacher' t.id %}">
+            {% csrf_token %}
+            <button type="submit" style="background:#28a745;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:600">Approve</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Notifications -->
+    <div class="wti-card">
+      <div class="wti-card-header"><h5><i class="fas fa-bell"></i> Recent Activity</h5></div>
+      <div style="padding:0;max-height:220px;overflow-y:auto">
+        {% for n in recent_notifs %}
+        <div style="padding:.7rem 1.2rem;border-bottom:1px solid #f8f9fa">
+          <div style="font-size:.82rem;font-weight:600;color:#001f5c">{{ n.title }}</div>
+          <div style="font-size:.75rem;color:#888">{{ n.message|truncatechars:55 }}</div>
+          <div style="font-size:.68rem;color:#aaa;margin-top:.2rem">{{ n.created_at|timesince }} ago</div>
+        </div>
+        {% empty %}<div style="padding:1.5rem;text-align:center;color:#888;font-size:.83rem">No recent activity</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

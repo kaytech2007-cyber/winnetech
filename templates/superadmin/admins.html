@@ -1,0 +1,68 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}Admin Records — WTI{% endblock %}
+{% block page_title %}Admin Records{% endblock %}
+{% block nav_admins %}active{% endblock %}
+{% block content %}
+<div class="sa-card">
+  <div class="sa-card-header">
+    <h5><i class="fas fa-user-shield"></i> Admin Records ({{ admins.paginator.count }})</h5>
+    <a href="{% url 'superadmin_create_admin' %}" style="background:linear-gradient(135deg,#003087,#0047b3);color:#fff;border:none;border-radius:10px;padding:.5rem 1.2rem;font-size:.83rem;font-weight:700;text-decoration:none"><i class="fas fa-plus me-1"></i> Create Admin</a>
+  </div>
+  <form method="get" class="row g-2 p-3">
+    <div class="col-md-6"><label class="visually-hidden" for="adminSearch">Search Admin records</label><input id="adminSearch" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Search name, username or email"></div>
+    <div class="col-auto"><button class="btn btn-primary" type="submit">Search</button><a class="btn btn-outline-secondary" href="{% url 'superadmin_admins' %}">Clear</a></div>
+  </form>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#f8f9fa">
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Full name</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Staff ID (Login)</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Email</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Role</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Account status</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Created</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for a in admins %}
+        <tr style="border-bottom:1px solid #f0f2f5">
+          <td style="padding:.9rem 1rem">
+            <div style="display:flex;align-items:center;gap:.7rem">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#003087,#0047b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0">{{ a.first_name|first|upper }}{{ a.last_name|first|upper }}</div>
+              <div><div style="font-weight:600;font-size:.87rem">{{ a.get_full_name|default:a.username }}</div></div>
+            </div>
+          </td>
+          <td style="padding:.9rem 1rem"><code style="font-size:.82rem;background:#e8f0fe;color:#003087;padding:3px 8px;border-radius:5px">{{ a.username }}</code><br><small style="color:#888;font-size:.7rem">Staff ID (login)</small></td>
+          <td style="padding:.9rem 1rem;font-size:.82rem;color:#666">{{ a.email|default:"—" }}</td>
+          <td style="padding:.9rem 1rem">
+            {% if a.admin_profile and a.admin_profile.role == 'superadmin' %}
+              <span style="background:rgba(0,48,135,.1);color:#003087;font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:20px"><i class="fas fa-crown me-1"></i>Super Admin</span>
+            {% elif a.admin_profile %}
+              <span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:20px"><i class="fas fa-user-shield me-1"></i>Admin</span>
+            {% else %}<span class="text-muted">Staff account</span>
+            {% endif %}
+          </td>
+          <td style="padding:.9rem 1rem">{% if a.is_active and a.staff_onboarding and not a.staff_onboarding.used_at and not a.has_usable_password %}Pending password setup{% elif a.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td style="padding:.9rem 1rem">{{ a.date_joined|date:'Y-m-d' }}</td>
+          <td style="padding:.9rem 1rem">
+            {% if a.admin_profile and a.admin_profile.role == 'admin' %}
+              {% if a.is_active and a.staff_onboarding and not a.staff_onboarding.used_at and not a.has_usable_password %}
+                <form method="post" action="{% url 'retry_staff_onboarding' a.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-primary">Resend setup email</button></form>
+              {% endif %}
+              {% if a != request.user %}<a href="{% url 'superadmin_delete_admin' a.id %}" class="btn btn-sm btn-outline-danger">Delete</a>{% endif %}
+            {% else %}<span style="color:#ccc;font-size:.78rem">Protected</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888;font-size:.85rem">No Admin records match this search.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if admins.paginator.num_pages > 1 %}
+<nav class="mt-3" aria-label="Admin records pagination">
+  {% if admins.has_previous %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ admins.previous_page_number }}">Previous</a>{% endif %}
+  <span class="small mx-2">Page {{ admins.number }} of {{ admins.paginator.num_pages }}</span>
+  {% if admins.has_next %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ admins.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

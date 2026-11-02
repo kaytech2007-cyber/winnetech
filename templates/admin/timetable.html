@@ -1,0 +1,129 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Timetable — WTI Admin{% endblock %}
+{% block page_title %}Timetable Management{% endblock %}
+{% block nav_timetable %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Add Entry Form -->
+  <div class="col-lg-4">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-{% if editing_entry %}edit{% else %}plus-circle{% endif %}"></i> {% if editing_entry %}Edit Timetable Entry{% else %}Add Timetable Entry{% endif %}</h5>
+      </div>
+      <div class="wti-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Day *</label>
+            {{ form.day }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Subject *</label>
+            {{ form.subject }}
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label">Start Time *</label>
+              {{ form.start_time }}
+            </div>
+            <div class="col-6">
+              <label class="form-label">End Time *</label>
+              {{ form.end_time }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Assign Facilitator</label>
+            {{ form.teacher }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Course Type</label>
+            {{ form.course_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Room</label>
+            {{ form.room }}
+          </div>
+          <div class="mb-3 form-check">
+            {{ form.is_break }}
+            <label class="form-check-label">Is Break Time</label>
+          </div>
+          <button type="submit" class="btn-gold w-100 py-2 rounded-3">
+            <i class="fas fa-save me-2"></i> {% if editing_entry %}Save Changes{% else %}Add Entry{% endif %}
+          </button>
+          {% if editing_entry %}
+          <a class="btn btn-outline-secondary w-100 mt-2" href="{% url 'admin_timetable' %}">Cancel</a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timetable Grid -->
+  <div class="col-lg-8">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-calendar-week"></i> Weekly Timetable</h5>
+      </div>
+      <div class="wti-card-body">
+        {% for day_name, entries in timetable_by_day %}
+        <div class="mb-4">
+          <h6 style="font-weight:700;color:var(--dark-blue);text-transform:capitalize;margin-bottom:0.8rem;padding-bottom:0.5rem;border-bottom:2px solid var(--gold)">
+            <i class="fas fa-calendar-day me-2" style="color:var(--gold)"></i>{{ day_name|title }}
+          </h6>
+          {% if entries %}
+          <div class="table-responsive">
+            <table class="wti-table">
+              <thead>
+                <tr><th>Time</th><th>Subject</th><th>Facilitator</th><th>Type</th><th></th></tr>
+              </thead>
+              <tbody>
+                {% for entry in entries %}
+                <tr>
+                  <td style="font-size:0.8rem;color:#888;white-space:nowrap">
+                    {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
+                  </td>
+                  <td>
+                    {% if entry.is_break %}
+                      <span class="text-muted"><i class="fas fa-coffee me-1"></i>{{ entry.subject }}</span>
+                    {% else %}
+                      <strong>{{ entry.subject }}</strong>
+                    {% endif %}
+                  </td>
+                  <td style="font-size:0.82rem">{{ entry.teacher.full_name|default:"—" }}</td>
+                  <td>
+                    {% if not entry.is_break %}
+                      <span class="status-badge {{ entry.course_type }}" style="font-size:0.7rem">
+                        {{ entry.get_course_type_display|default:"—" }}
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'admin_timetable_edit' entry.id %}" aria-label="Edit entry">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <form class="d-inline" method="post" action="{% url 'delete_timetable_entry' entry.id %}"
+                          onsubmit="return confirm('Delete this entry?')">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size:0.72rem">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted" style="font-size:0.85rem">No entries for {{ day_name|title }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

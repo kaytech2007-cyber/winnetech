@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WTI Admin">
+  <meta name="theme-color" content="#0a1628">
+  <meta name="description" content="WTI Admin Portal — Staff Management">
+
+  <title>{% block title %}Admin — WTI{% endblock %}</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+  <link rel="icon" type="image/png" href="{% static 'icons/icon-96.png' %}">
+
+  <!-- Styles -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-wrapper">
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'images/logo.png' %}" alt="WTI">
+      <div class="sidebar-brand-text">
+        <h6>WTI Admin</h6>
+        <small>Management Portal</small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+      <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="{% url 'admin_programmes' %}" class="sidebar-link"><i class="fas fa-layer-group"></i> Programme Management</a>
+      <a href="{% url 'admin_teachers' %}" class="sidebar-link {% block nav_teachers %}{% endblock %}">
+        <i class="fas fa-chalkboard-teacher"></i> Facilitators
+        {% if pending_count %}<span class="badge bg-warning text-dark">{{ pending_count }}</span>{% endif %}
+      </a>
+      <a href="{% url 'admin_create_teacher' %}" class="sidebar-link {% block nav_create_teacher %}{% endblock %}">
+        <i class="fas fa-user-plus"></i> Add Facilitator
+      </a>
+      <a href="{% url 'admin_facilitator_records' %}" class="sidebar-link {% block nav_records %}{% endblock %}">
+        <i class="fas fa-folder-open"></i> Facilitator Records
+      </a>
+      <a href="{% url 'admin_hods' %}" class="sidebar-link {% block nav_hods %}{% endblock %}">
+        <i class="fas fa-user-tie"></i> HOD Records
+      </a>
+      <a href="{% url 'admin_timetable' %}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Timetable</a>
+      <a href="{% url 'admin_attendance' %}" class="sidebar-link {% block nav_attendance %}{% endblock %}">
+        <i class="fas fa-clipboard-check"></i> Attendance
+      </a>
+      <a href="{% url 'admin_notifications' %}" class="sidebar-link"><i class="fas fa-bell"></i> Notifications</a>
+      <a href="{% url 'admin_extension_requests' %}" class="sidebar-link"><i class="fas fa-calendar-plus"></i> Internship Extensions</a>
+      <div class="nav-section-title">QR Codes</div>
+      <a href="{% url 'admin_qr_view' %}" class="sidebar-link {% block nav_qr %}{% endblock %}">
+        <i class="fas fa-qrcode"></i> View QR Codes
+      </a>
+      <a href="{% url 'qr_scanner' %}" class="sidebar-link">
+        <i class="fas fa-camera"></i> QR Scanner
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+        </div>
+        <div class="sidebar-user-info">
+          <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
+          <small>Administrator</small>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sidebar-link border-0 bg-transparent w-100 text-start" style="border-radius:10px;color:rgba(255,100,100,0.8)"><i class="fas fa-sign-out-alt"></i> Logout</button></form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="header-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="header-actions">
+        <div id="adminClock" style="font-size:.82rem;font-weight:600;color:#003087;background:#e8f0fe;padding:.3rem .8rem;border-radius:20px;margin-right:.5rem"></div>
+        <button class="header-btn" id="notifBtn" title="Notifications" aria-label="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot" style="display:none"></span>
+        </button>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="header-btn border-0 bg-transparent" title="Logout" style="color:#dc3545" aria-label="Logout"><i class="fas fa-sign-out-alt"></i></button></form>
+      </div>
+    </header>
+
+    <!-- Notification Panel -->
+    <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications">
+      <div class="notif-panel-header">
+        <span><i class="fas fa-bell me-2" style="color:var(--gold)"></i> Notifications</span>
+        <button class="btn btn-sm btn-link text-muted p-0" onclick="document.getElementById('notifPanel').classList.remove('show')" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="notif-list" id="notifList">
+        <div class="p-3 text-center text-muted" style="font-size:0.85rem">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="px-3 pt-3">
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} auto-dismiss alert-dismissible fade show" role="alert">
+          {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<!-- Reminder Toast -->
+<div class="reminder-toast" id="reminderToast" role="alert" aria-live="assertive">
+  <h6><i class="fas fa-bell"></i> <span class="reminder-title">Class Reminder</span></h6>
+  <p class="reminder-body"></p>
+  <button class="btn btn-sm btn-outline-light mt-2" onclick="document.getElementById('reminderToast').classList.remove('show')">
+    Dismiss
+  </button>
+</div>
+
+<!-- Admin Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav" aria-label="Admin mobile navigation">
+  <a href="{% url 'admin_dashboard' %}" class="{% block mob_dashboard %}{% endblock %}" aria-label="Dashboard">
+    <i class="fas fa-tachometer-alt"></i>
+    <span>Dashboard</span>
+  </a>
+  <a href="{% url 'admin_teachers' %}" class="{% block mob_teachers %}{% endblock %}" aria-label="Facilitators">
+    <i class="fas fa-chalkboard-teacher"></i>
+    <span>Facilitators</span>
+    {% if pending_count %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}
+  </a>
+  <a href="{% url 'admin_facilitator_records' %}" class="{% block mob_records %}{% endblock %}" aria-label="Facilitator Records">
+    <i class="fas fa-folder-open"></i>
+    <span>Records</span>
+  </a>
+  <a href="{% url 'admin_qr_view' %}" class="{% block mob_qr %}{% endblock %}" aria-label="QR Code" style="position:relative">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 15px rgba(245,166,35,0.5)">
+      <i class="fas fa-qrcode" style="font-size:1.3rem;color:#fff"></i>
+    </div>
+    <span>QR Codes</span>
+  </a>
+  <a href="{% url 'admin_attendance' %}" class="{% block mob_attendance %}{% endblock %}" aria-label="Attendance">
+    <i class="fas fa-clipboard-check"></i>
+    <span>Attendance</span>
+  </a>
+  <form method="post" action="{% url 'logout' %}" class="d-flex align-items-center">{% csrf_token %}<button type="submit" class="border-0 bg-transparent" aria-label="Logout" style="color:#dc3545"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></form>
+</nav>
+
+<!-- PWA Install Banner -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#0a1628,#1a2f5a);color:#fff;padding:1rem 1.2rem;z-index:99998;align-items:center;gap:1rem;box-shadow:0 -4px 20px rgba(0,0,0,0.3);animation:slideInUp 0.4s ease">
+  <img src="{% static 'icons/icon-72.png' %}" alt="WTI" style="width:40px;height:40px;border-radius:10px;flex-shrink:0">
+  <div style="flex:1;min-width:0">
+    <div style="font-weight:700;font-size:0.88rem">Install WTI Staff App</div>
+    <div style="font-size:0.75rem;color:rgba(255,255,255,0.7)">Add to home screen for quick access</div>
+  </div>
+  <button onclick="installPWA()" style="background:linear-gradient(135deg,#f5a623,#e8920a);color:#fff;border:none;border-radius:20px;padding:0.5rem 1.2rem;font-weight:700;font-size:0.82rem;white-space:nowrap;cursor:pointer">
+    Install
+  </button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0.2rem;flex-shrink:0" aria-label="Dismiss">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
+<!-- PWA Update Banner -->
+<div id="pwaUpdateBanner" style="display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#28a745;color:#fff;padding:0.7rem 1.5rem;border-radius:50px;z-index:99998;align-items:center;gap:1rem;box-shadow:0 4px 20px rgba(0,0,0,0.2);font-size:0.85rem;font-weight:600">
+  <i class="fas fa-sync-alt"></i> New version available!
+  <button onclick="applyUpdate()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:20px;padding:0.3rem 1rem;font-weight:700;cursor:pointer;font-size:0.82rem">Update</button>
+</div>
+
+<!-- Offline Indicator -->
+<div id="onlineIndicator" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#dc3545;color:#fff;text-align:center;padding:0.5rem;font-size:0.82rem;font-weight:600;z-index:99999;align-items:center;justify-content:center;gap:0.5rem">
+  <i class="fas fa-wifi"></i> You are offline
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  window.NOTIF_API_URL = "{% url 'notifications_api' %}";
+  window.MARK_READ_BASE_URL = "{% url 'mark_notification_read' 0 %}";
+  window.CURRENT_USER_ID = {{ request.user.id }};
+</script>
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/pwa.js' %}"></script>
+<script>
+(function(){function t(){var e=document.getElementById('adminClock');if(e){var n=new Date();e.textContent=n.toLocaleTimeString('en-GH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}}t();setInterval(t,1000);})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

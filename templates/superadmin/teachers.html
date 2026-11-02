@@ -1,0 +1,49 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}All Facilitators — WTI{% endblock %}
+{% block page_title %}All Facilitators{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+{% block content %}
+<div class="sa-card">
+  <div class="sa-card-header">
+    <h5><i class="fas fa-chalkboard-teacher"></i> All Facilitators ({{ teachers.count }})</h5>
+    <input type="text" id="srch" class="form-control" placeholder="Search..." style="width:200px;font-size:.83rem" oninput="document.querySelectorAll('#tbl tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(this.value.toLowerCase())?'':'none')">
+  </div>
+  <div style="overflow-x:auto">
+    <table id="tbl" style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#f8f9fa">
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Facilitator</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Staff ID</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Type</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Status</th>
+        <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for t in teachers %}
+        <tr style="border-bottom:1px solid #f0f2f5">
+          <td style="padding:.9rem 1rem">
+            <div style="display:flex;align-items:center;gap:.7rem">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8920a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;overflow:hidden">
+                {% if t.profile_photo %}<img src="{{ t.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}{{ t.user.first_name|first|upper }}{{ t.user.last_name|first|upper }}{% endif %}
+              </div>
+              <div><div style="font-weight:600;font-size:.87rem">{{ t.full_name }}</div><small style="color:#888">{{ t.user.email }}</small></div>
+            </div>
+          </td>
+          <td style="padding:.9rem 1rem"><code style="font-size:.82rem">{{ t.staff_id }}</code></td>
+          <td style="padding:.9rem 1rem"><span style="background:rgba(0,48,135,.1);color:#003087;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px">{{ t.get_course_type_display }}</span></td>
+          <td style="padding:.9rem 1rem">
+            {% if t.is_approved %}<span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px"><i class="fas fa-check-circle me-1"></i>Approved</span>
+            {% else %}<span style="background:rgba(255,193,7,.15);color:#856404;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px"><i class="fas fa-clock me-1"></i>Pending</span>{% endif %}
+          </td>
+          <td style="padding:.9rem 1rem">
+            <div style="display:flex;gap:.4rem">
+              {% if not t.is_approved %}<form method="post" action="{% url 'superadmin_approve_teacher' t.id %}">{% csrf_token %}<button type="submit" style="background:#28a745;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:600"><i class="fas fa-check"></i></button></form>{% endif %}
+              <a href="{% url 'superadmin_delete_teacher' t.id %}" title="Deactivate Facilitator" style="background:#dc3545;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:600;text-decoration:none"><i class="fas fa-user-slash"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" style="text-align:center;padding:2rem;color:#888;font-size:.85rem">No facilitators registered</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% block title %}QR Attendance — WTI{% endblock %}
+{% block page_title %}QR Code Management{% endblock %}
+{% block nav_qr %}active{% endblock %}
+{% block mob_qr %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Generate Form -->
+  <div class="col-lg-4">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-qrcode"></i> Generate QR Code</h5>
+      </div>
+      <div class="wti-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">QR Code Type *</label>
+            {{ form.qr_type }}
+            <small class="text-muted">School Attendance = check-in to school. Lesson = lesson completion.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Label *</label>
+            {{ form.label }}
+          </div>
+          <div class="alert alert-info" style="font-size:.8rem;border-radius:10px">
+            <i class="fas fa-info-circle me-2"></i>
+            QR codes are valid for <strong>5 years</strong> from generation date. Generate once, use permanently.
+          </div>
+          <button type="submit" class="btn-gold w-100 py-2 rounded-3">
+            <i class="fas fa-qrcode me-2"></i> Generate QR Code
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Lists -->
+  <div class="col-lg-8">
+    <!-- School Attendance QRs -->
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-school" style="color:#003087"></i> School Attendance QR Codes</h5>
+        <span style="background:rgba(0,48,135,.1);color:#003087;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px">{{ school_qrs.count }}</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="wti-table">
+          <thead><tr><th>Label</th><th>Valid From</th><th>Valid Until</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for qr in school_qrs %}
+            <tr>
+              <td style="font-weight:600;font-size:.87rem">{{ qr.label }}</td>
+              <td style="font-size:.82rem">{{ qr.valid_from }}</td>
+              <td style="font-size:.82rem">{{ qr.valid_until }}</td>
+              <td>
+                {% if qr.is_valid_today %}<span class="status-badge approved">Active</span>
+                {% else %}<span class="status-badge absent">Inactive</span>{% endif %}
+              </td>
+              <td><a href="{% url 'qr_detail' qr.id %}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.73rem"><i class="fas fa-eye me-1"></i>View</a></td>
+            </tr>
+            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3" style="font-size:.83rem">No school attendance QR codes yet</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lesson QRs -->
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-book" style="color:#28a745"></i> Lesson QR Codes</h5>
+        <span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px">{{ lesson_qrs.count }}</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="wti-table">
+          <thead><tr><th>Label</th><th>Valid From</th><th>Valid Until</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for qr in lesson_qrs %}
+            <tr>
+              <td style="font-weight:600;font-size:.87rem">{{ qr.label }}</td>
+              <td style="font-size:.82rem">{{ qr.valid_from }}</td>
+              <td style="font-size:.82rem">{{ qr.valid_until }}</td>
+              <td>
+                {% if qr.is_valid_today %}<span class="status-badge approved">Active</span>
+                {% else %}<span class="status-badge absent">Inactive</span>{% endif %}
+              </td>
+              <td><a href="{% url 'qr_detail' qr.id %}" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.73rem"><i class="fas fa-eye me-1"></i>View</a></td>
+            </tr>
+            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3" style="font-size:.83rem">No lesson QR codes yet</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends base_template %}
+{% block title %}Facilitator Records{% endblock %}
+{% block page_title %}Facilitator Records{% endblock %}
+{% block page_heading %}Facilitator Records{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+{% block nav_facilitators %}active{% endblock %}
+{% block nav_records %}active{% endblock %}
+{% block mob_records %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1">Facilitator Records</h2>
+      {% if role == 'hod' %}
+        <p class="text-muted mb-0">Programme oversight: {{ programme.name }} ({{ programme.code }}). Permanent Facilitator supervision is additional to HOD oversight.</p>
+      {% else %}
+        <p class="text-muted mb-0">Browse Permanent and Internship Facilitator records by programme.</p>
+      {% endif %}
+    </div>
+    {% if role == 'admin' or role == 'superadmin' %}
+      <a class="btn btn-primary" href="{% if role == 'admin' %}{% url 'admin_create_teacher' %}{% else %}{% url 'superadmin_create_facilitator' %}{% endif %}">Add Facilitator</a>
+    {% endif %}
+  </div>
+
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+      <label class="visually-hidden" for="recordSearch">Search records</label>
+      <input id="recordSearch" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Search name, Staff ID, username or email">
+    </div>
+    {% if role != 'hod' %}
+    <div class="col-md-3">
+      <label class="visually-hidden" for="programmeFilter">Programme</label>
+      <select id="programmeFilter" class="form-select" name="programme">
+        <option value="">All programmes</option>
+        {% for item in programmes %}
+          <option value="{{ item.pk }}" {% if selected_programme == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2">
+      <label class="visually-hidden" for="statusFilter">Account and profile status</label>
+      <select id="statusFilter" class="form-select" name="status">
+        <option value="">All statuses</option>
+        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending approval</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn btn-primary flex-grow-1" type="submit">Filter</button>
+      <a class="btn btn-outline-secondary" href="{% if role == 'hod' %}{% url 'hod_facilitators' %}{% elif role == 'admin' %}{% url 'admin_facilitator_records' %}{% else %}{% url 'superadmin_facilitator_records' %}{% endif %}">Clear</a>
+    </div>
+  </form>
+
+  {% for group in grouped_records %}
+  <section class="mb-4" aria-labelledby="programme-{{ group.programme.pk|default:'unassigned' }}">
+    <h2 id="programme-{{ group.programme.pk|default:'unassigned' }}" class="h5 mb-3">{{ group.label }}{% if group.programme %} <small class="text-muted">({{ group.programme.code }})</small>{% endif %}</h2>
+
+    <div class="card mb-3">
+      <div class="card-header fw-bold">Permanent Facilitators and legacy records</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Staff ID</th><th>Full name</th><th>Username</th><th>Email</th><th>Programme</th><th>Employment type</th><th>Account/profile status</th><th>Active interns supervised</th><th>Record</th></tr></thead>
+          <tbody>
+          {% for person in group.permanent %}
+            <tr>
+              <td>{{ person.staff_id|default:'—' }}</td>
+              <td>{{ person.full_name }}</td>
+              <td>{{ person.user.username }}</td>
+              <td>{{ person.user.email|default:'—' }}</td>
+              <td>{{ group.label }}</td>
+              <td>{% if person.facilitator_profile %}{{ person.facilitator_profile.get_employment_type_display }}{% else %}Not recorded (legacy profile){% endif %}</td>
+              <td>
+                {% if person.user.is_active and person.is_approved and person.facilitator_profile and person.facilitator_profile.is_active and not person.facilitator_profile.is_expired and person.user.staff_onboarding and not person.user.staff_onboarding.used_at and not person.user.has_usable_password %}Pending password setup
+                {% elif not person.user.is_active or person.facilitator_profile and not person.facilitator_profile.is_active %}Inactive
+                {% elif not person.is_approved %}Pending approval
+                {% elif not person.facilitator_profile %}Active account; legacy profile
+                {% else %}Active{% endif %}
+              </td>
+              <td>{{ person.supervised_intern_count }}</td>
+              <td class="text-nowrap">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'facilitator_record_detail' person.pk %}">View</a>
+                {% if role != 'hod' and person.user.is_active and person.is_approved and person.facilitator_profile and person.facilitator_profile.is_active and not person.facilitator_profile.is_expired and person.user.staff_onboarding and not person.user.staff_onboarding.used_at and not person.user.has_usable_password %}
+                  <form class="d-inline" method="post" action="{% url 'retry_staff_onboarding' person.user.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" type="submit">Resend setup email</button></form>
+                {% endif %}
+                {% if role == 'hod' %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'hod_facilitator_manage' person.pk %}">Manage</a>
+                {% else %}
+                  {% if not person.is_approved %}
+                    <form class="d-inline" method="post" action="{% if role == 'admin' %}{% url 'approve_teacher' person.pk %}{% else %}{% url 'superadmin_approve_teacher' person.pk %}{% endif %}">{% csrf_token %}<button class="btn btn-sm btn-success" type="submit">Approve</button></form>
+                  {% endif %}
+                  <a class="btn btn-sm btn-outline-danger" href="{% if role == 'admin' %}{% url 'delete_teacher' person.pk %}{% else %}{% url 'superadmin_delete_teacher' person.pk %}{% endif %}">Deactivate</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="9" class="text-center text-muted py-3">No Permanent Facilitator records match this programme and filter.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if group.permanent.paginator.num_pages > 1 %}
+      <nav class="p-2" aria-label="Permanent Facilitator pagination">
+        {% if group.permanent.has_previous %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ group.permanent.previous_page_number }}">Previous</a>{% endif %}
+        <span class="small mx-2">Page {{ group.permanent.number }} of {{ group.permanent.paginator.num_pages }}</span>
+        {% if group.permanent.has_next %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ group.permanent.next_page_number }}">Next</a>{% endif %}
+      </nav>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-bold">Internship Facilitators</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Staff ID</th><th>Full name</th><th>Username</th><th>Email</th><th>Programme</th><th>Permanent Facilitator supervisor</th><th>Start date</th><th>End date</th><th>Extensions</th><th>Account/profile status</th><th>Record</th></tr></thead>
+          <tbody>
+          {% for person in group.internship %}
+            <tr>
+              <td>{{ person.staff_id|default:'—' }}</td>
+              <td>{{ person.full_name }}</td>
+              <td>{{ person.user.username }}</td>
+              <td>{{ person.user.email|default:'—' }}</td>
+              <td>{{ group.label }}</td>
+              <td>{% if person.facilitator_profile.supervisor %}{{ person.facilitator_profile.supervisor.teacher.full_name }}{% else %}Not assigned{% endif %}</td>
+              <td>{{ person.facilitator_profile.internship_start_date|default:'—' }}</td>
+              <td>{{ person.facilitator_profile.internship_end_date|default:'—' }}</td>
+              <td>
+                {% for extension in person.facilitator_profile.extensions.all %}
+                  <div>{{ extension.old_end_date }} to {{ extension.new_end_date }}{% if extension.reason %}: {{ extension.reason }}{% endif %}</div>
+                {% empty %}None recorded{% endfor %}
+              </td>
+              <td>{% if person.user.is_active and person.is_approved and person.facilitator_profile.is_active and not person.facilitator_profile.is_expired and person.user.staff_onboarding and not person.user.staff_onboarding.used_at and not person.user.has_usable_password %}Pending password setup{% elif not person.user.is_active or not person.facilitator_profile.is_active %}Inactive{% elif not person.is_approved %}Pending approval{% else %}Active{% endif %}</td>
+              <td class="text-nowrap">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'facilitator_record_detail' person.pk %}">View</a>
+                {% if role != 'hod' and person.user.is_active and person.is_approved and person.facilitator_profile.is_active and not person.facilitator_profile.is_expired and person.user.staff_onboarding and not person.user.staff_onboarding.used_at and not person.user.has_usable_password %}
+                  <form class="d-inline" method="post" action="{% url 'retry_staff_onboarding' person.user.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" type="submit">Resend setup email</button></form>
+                {% endif %}
+                {% if role == 'hod' %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'hod_facilitator_manage' person.pk %}">Manage</a>
+                {% else %}
+                  {% if not person.is_approved %}
+                    <form class="d-inline" method="post" action="{% if role == 'admin' %}{% url 'approve_teacher' person.pk %}{% else %}{% url 'superadmin_approve_teacher' person.pk %}{% endif %}">{% csrf_token %}<button class="btn btn-sm btn-success" type="submit">Approve</button></form>
+                  {% endif %}
+                  <a class="btn btn-sm btn-outline-danger" href="{% if role == 'admin' %}{% url 'delete_teacher' person.pk %}{% else %}{% url 'superadmin_delete_teacher' person.pk %}{% endif %}">Deactivate</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="11" class="text-center text-muted py-3">No Internship Facilitator records match this programme and filter.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if group.internship.paginator.num_pages > 1 %}
+      <nav class="p-2" aria-label="Internship Facilitator pagination">
+        {% if group.internship.has_previous %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ group.internship.previous_page_number }}">Previous</a>{% endif %}
+        <span class="small mx-2">Page {{ group.internship.number }} of {{ group.internship.paginator.num_pages }}</span>
+        {% if group.internship.has_next %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ group.internship.next_page_number }}">Next</a>{% endif %}
+      </nav>
+      {% endif %}
+    </div>
+  </section>
+  {% empty %}
+    <div class="alert alert-info">No programme records are available for this portal.</div>
+  {% endfor %}
+</div>
+{% endblock %}

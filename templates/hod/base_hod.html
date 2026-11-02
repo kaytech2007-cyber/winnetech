@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}{% block portal_title %}HOD Portal — WTI{% endblock %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hod-shell { min-height: 100vh; display: grid; grid-template-columns: 245px minmax(0, 1fr); background: #f3f6fb; color: #17243a; }
+  .hod-sidebar { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem 1rem; background: #0a1628; color: #fff; }
+  .hod-brand { padding: .5rem; }
+  .hod-brand strong { display: block; font-size: 1.15rem; }
+  .hod-brand small, .hod-user small { color: #b8c6dc; }
+  .hod-nav { display: grid; gap: .4rem; }
+  .hod-nav a { padding: .75rem .85rem; color: #dbe5f5; text-decoration: none; border-radius: 8px; }
+  .hod-nav a:hover, .hod-nav a.active { background: #173c77; color: #fff; }
+  .hod-user { margin-top: auto; padding: .85rem; border-top: 1px solid #ffffff26; }
+  .hod-main { min-width: 0; }
+  .hod-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid #e4e9f1; }
+  .hod-content { padding: 1.5rem; }
+  .hod-card { height: 100%; padding: 1rem; border: 1px solid #e4e9f1; border-radius: 12px; background: #fff; box-shadow: 0 3px 12px #17243a0a; }
+  .hod-card h2 { font-size: 1rem; font-weight: 700; }
+  .hod-stat { font-size: 1.8rem; font-weight: 700; color: #003087; }
+  .hod-table-wrap { overflow-x: auto; }
+  @media (max-width: 720px) {
+    .hod-shell { grid-template-columns: 1fr; }
+    .hod-sidebar { gap: .5rem; padding: .8rem; }
+    .hod-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hod-user { margin-top: 0; }
+    .hod-header, .hod-content { padding: 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="hod-shell">
+  <aside class="hod-sidebar">
+    <div class="hod-brand">
+      <strong>WTI HOD Portal</strong>
+      <small>{{ programme.name }}</small>
+    </div>
+    <nav class="hod-nav" aria-label="HOD navigation">
+      <a class="{% block nav_dashboard %}{% endblock %}" href="{% url 'hod_dashboard' %}">Dashboard</a>
+      <a href="{% url 'hod_programme' %}">Programme Information</a>
+      <a class="{% block nav_facilitators %}{% endblock %}" href="{% url 'hod_facilitators' %}">Facilitator Records</a>
+      <a href="{% url 'hod_permanent_facilitators' %}">Permanent Facilitators</a>
+      <a href="{% url 'hod_internship_facilitators' %}">Internship Facilitators</a>
+      <a href="{% url 'hod_supervision' %}">Internship Supervision</a>
+      <a href="{% url 'hod_extension_requests' %}">Internship Extensions</a>
+      <a href="{% url 'hod_timetable' %}">Timetable</a>
+      <a href="{% url 'hod_attendance' %}">Attendance</a>
+      <a href="{% url 'hod_class_replacements' %}">Class Replacements</a>
+      <a href="{% url 'hod_notifications' %}">Notifications</a>
+      <a href="{% url 'hod_profile' %}">My Profile</a>
+    </nav>
+    <div class="hod-user">
+      <strong>{{ hod.full_name }}</strong><br>
+      <small>Head of Department</small>
+    </div>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-outline-light" type="submit">Log out</button></form>
+  </aside>
+  <main class="hod-main">
+    <header class="hod-header">
+      <h1 class="h5 mb-0">{% block page_heading %}HOD Portal{% endblock %}</h1>
+      <span class="text-muted">{{ programme.code }}</span>
+    </header>
+    {% if messages %}
+      <div class="px-3 pt-3">
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <section class="hod-content">{% block content %}{% endblock %}</section>
+  </main>
+</div>
+{% endblock %}

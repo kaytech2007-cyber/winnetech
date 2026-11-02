@@ -1,0 +1,15 @@
+Django==5.0.14
+daphne
+channels
+gunicorn
+whitenoise
+dj-database-url
+psycopg2-binary
+django-crispy-forms
+crispy-bootstrap5
+django-widget-tweaks
+qrcode[pil]
+cloudinary
+django-cloudinary-storage
+python-dotenv
+argon2-cffi

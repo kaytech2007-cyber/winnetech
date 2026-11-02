@@ -1,0 +1,23 @@
+{% extends 'hod/base_hod.html' %}
+{% block page_heading %}Programme Attendance{% endblock %}
+{% block content %}
+<div class="hod-card">
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-auto"><label for="attendanceDate" class="form-label">Date</label><input id="attendanceDate" class="form-control" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}"></div>
+    <div class="col-auto align-self-end"><button class="btn btn-primary" type="submit">View attendance</button></div>
+  </form>
+  <div class="hod-table-wrap"><table class="table mb-0"><thead><tr><th>Facilitator</th><th>Staff ID</th><th>School status</th><th>Check-in</th><th>Lesson status</th><th>Lesson time</th></tr></thead><tbody>
+    {% for record in attendance %}<tr><td>{{ record.teacher.full_name }}</td><td>{{ record.teacher.staff_id }}</td><td>{{ record.get_school_status_display }}</td><td>{{ record.check_in_time|default:'—' }}</td><td>{{ record.get_lesson_status_display }}</td><td>{{ record.lesson_done_time|default:'—' }}</td></tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-muted">No attendance records for {{ selected_date }}.</td></tr>{% endfor %}
+  </tbody></table></div>
+  <h3 class="h6 mt-4">Unverified attendance</h3>
+  <p class="small text-muted">No attendance evidence is recorded for these programme facilitators on {{ selected_date }}. This does not confirm absence.</p>
+  <ul class="mb-0">
+    {% for teacher in unverified_teachers %}
+    <li>{{ teacher.full_name }} ({{ teacher.staff_id }}) — Unverified</li>
+    {% empty %}
+    <li class="text-muted">No unverified attendance.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

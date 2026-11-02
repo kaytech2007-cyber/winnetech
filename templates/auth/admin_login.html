@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Portal — WTI{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="{% static 'images/logo.png' %}" alt="WTI Logo">
+      <h4>Admin Portal</h4>
+      <p>Winneba Technical Institute</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger auto-dismiss alert-dismissible fade show" style="font-size:.85rem;border-radius:10px">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    {% if messages %}{% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} auto-dismiss alert-dismissible fade show" style="font-size:.85rem;border-radius:10px">
+      {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}{% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">
+          <i class="fas fa-id-badge me-1" style="color:#003087"></i> Admin Staff ID
+        </label>
+        <input type="text" name="staff_id" class="form-control" placeholder="e.g. WTIAdmin"
+               required autofocus autocomplete="username" style="font-weight:600">
+        <small class="text-muted" style="font-size:.75rem">Enter your Admin Staff ID</small>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">
+          <i class="fas fa-lock me-1" style="color:#003087"></i> Password
+        </label>
+        <div class="position-relative">
+          <input type="password" name="password" id="adminPass" class="form-control"
+                 placeholder="Enter password" required autocomplete="current-password">
+          <button type="button"
+                  class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-muted"
+                  onclick="var e=document.getElementById('adminPass');e.type=e.type=='password'?'text':'password'">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-gold w-100 py-3 rounded-3">
+        <i class="fas fa-sign-in-alt me-2"></i> Login to Admin Portal
+      </button>
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <div class="text-center">
+      <a href="{% url 'welcome' %}" class="text-muted text-decoration-none" style="font-size:0.85rem">
+        <i class="fas fa-arrow-left me-1"></i> Back to Welcome Page
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function tp() {
+  var el = document.getElementById('adminPass');
+  var ic = document.getElementById('eyeIcon');
+  if (el.type === 'password') {
+    el.type = 'text';
+    ic.className = 'fas fa-eye-slash';
+  } else {
+    el.type = 'password';
+    ic.className = 'fas fa-eye';
+  }
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pwa.js' %}"></script>
+{% endblock %}

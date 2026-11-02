@@ -1,0 +1,62 @@
+{% extends base_template %}
+{% block title %}Manage HODs{% endblock %}
+{% block page_title %}Manage HODs{% endblock %}
+{% block nav_hods %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="h4 mb-1">HOD Records</h2>
+    <p class="text-muted mb-0">Create and manage programme assignments. Deactivation preserves the user account and releases the programme.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url create_url_name %}">Create HOD</a>
+</div>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-6"><label class="visually-hidden" for="hodSearch">Search HOD records</label><input id="hodSearch" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Search Staff ID, name, username, email or programme"></div>
+  <div class="col-md-3"><label class="visually-hidden" for="programmeFilter">Programme</label><select id="programmeFilter" name="programme" class="form-select"><option value="">All programmes</option>{% for programme in programmes %}<option value="{{ programme.pk }}" {% if programme_filter == programme.pk|stringformat:'s' %}selected{% endif %}>{{ programme.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label class="visually-hidden" for="statusFilter">Status</label><select id="statusFilter" name="status" class="form-select"><option value="">All statuses</option><option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option><option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option></select></div>
+  <div class="col-auto"><button class="btn btn-primary" type="submit">Filter</button><a class="btn btn-outline-secondary" href="{% url list_url_name %}">Clear</a></div>
+</form>
+<div class="table-responsive bg-white rounded shadow-sm p-3">
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th>HOD Staff ID</th><th>Full name</th><th>Username</th><th>Email</th><th>Assigned programme</th><th>Account status</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for hod in hods %}
+      <tr>
+        <td><a href="{% if route_prefix == 'admin' %}{% url 'admin_hod_detail' hod.pk %}{% else %}{% url 'superadmin_hod_detail' hod.pk %}{% endif %}">{{ hod.staff_id|default:'—' }}</a></td>
+        <td>{{ hod.full_name }}</td>
+        <td>{{ hod.user.username }}</td>
+        <td>{{ hod.user.email }}</td>
+        <td>{% if hod.programme %}{{ hod.programme.name }} ({{ hod.programme.code }}){% else %}Unassigned{% endif %}</td>
+        <td>{% if hod.is_active and hod.programme_id and hod.user.staff_onboarding and not hod.user.staff_onboarding.used_at and not hod.user.has_usable_password %}<span class="badge bg-warning text-dark">Pending password setup</span>{% elif hod.is_active and hod.user.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+        <td>{{ hod.created_at|date:'Y-m-d' }}</td>
+        <td class="text-nowrap">
+          <a class="btn btn-sm btn-outline-primary" href="{% url manage_url_name hod.pk %}">Edit / Reassign</a>
+          {% if hod.is_active and hod.programme_id and hod.user.staff_onboarding and not hod.user.staff_onboarding.used_at and not hod.user.has_usable_password %}
+          <form class="d-inline" method="post" action="{% url 'retry_staff_onboarding' hod.user.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-primary" type="submit">Resend setup email</button>
+          </form>
+          {% endif %}
+          {% if hod.is_active %}
+          <form class="d-inline" method="post" action="{% url deactivate_url_name hod.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit">Deactivate</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="text-center text-muted">No HOD records match this search.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if hods.paginator.num_pages > 1 %}
+<nav class="mt-3" aria-label="HOD records pagination">
+  {% if hods.has_previous %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ hods.previous_page_number }}">Previous</a>{% endif %}
+  <span class="small mx-2">Page {{ hods.number }} of {{ hods.paginator.num_pages }}</span>
+  {% if hods.has_next %}<a class="btn btn-sm btn-outline-primary" href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ hods.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

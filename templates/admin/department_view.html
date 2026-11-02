@@ -1,0 +1,100 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% block title %}{{ dept_name }} — WTI Admin{% endblock %}
+{% block page_title %}{{ dept_name }}{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="stat-card"><div class="stat-icon gold"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="stat-info"><h3>{{ total }}</h3><p>Total Facilitators</p></div></div>
+  </div>
+  <div class="col-4">
+    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+    <div class="stat-info"><h3>{{ present }}</h3><p>Present Today</p></div></div>
+  </div>
+  <div class="col-4">
+    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-book"></i></div>
+    <div class="stat-info"><h3>{{ lesson_done }}</h3><p>Lesson Done</p></div></div>
+  </div>
+</div>
+
+{% if is_core %}
+<!-- Core Subjects: group by individual subject -->
+{% regroup teacher_data by teacher.preferred_subject as subject_groups %}
+{% for group in subject_groups %}
+<div class="wti-card mb-3">
+  <div class="wti-card-header">
+    <h5><i class="fas fa-book-open"></i> {{ group.grouper|title }}</h5>
+    <span style="background:rgba(0,48,135,.1);color:#003087;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px">{{ group.list|length }} Facilitator{{ group.list|length|pluralize }}</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="wti-table">
+      <thead><tr><th>Facilitator</th><th>Staff ID</th><th>School</th><th>Check In</th><th>Lesson</th><th>Done At</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for d in group.list %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:.7rem">
+              <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#003087,#0047b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.78rem;flex-shrink:0;overflow:hidden">
+                {% if d.teacher.profile_photo %}<img src="{{ d.teacher.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}{{ d.teacher.user.first_name|first|upper }}{{ d.teacher.user.last_name|first|upper }}{% endif %}
+              </div>
+              <div><div style="font-weight:600;font-size:.85rem;color:#001f5c">{{ d.teacher.full_name }}</div><small style="color:#888">{{ d.teacher.user.email }}</small></div>
+            </div>
+          </td>
+          <td><code style="font-size:.8rem;background:#e8f0fe;color:#003087;padding:2px 8px;border-radius:5px">{{ d.teacher.staff_id }}</code></td>
+          <td>{% if d.school_status == 'present' %}<span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-check-circle me-1"></i>Present</span>{% elif d.school_status == 'late' %}<span style="background:rgba(255,193,7,.15);color:#856404;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px">Late</span>{% elif d.school_status == 'absent' %}<span style="background:rgba(220,53,69,.1);color:#dc3545;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-times-circle me-1"></i>Absent</span>{% else %}<span style="background:rgba(108,117,125,.12);color:#6c757d;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px">Unverified</span>{% endif %}</td>
+          <td style="font-size:.82rem;color:#666">{{ d.check_in|default:"—" }}</td>
+          <td>{% if d.lesson_status == 'done' %}<span style="background:rgba(0,48,135,.1);color:#003087;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-book me-1"></i>Done</span>{% else %}<span style="background:rgba(255,193,7,.15);color:#856404;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-clock me-1"></i>Pending</span>{% endif %}</td>
+          <td style="font-size:.82rem;color:#666">{{ d.lesson_done|default:"—" }}</td>
+          <td><a href="{% url 'teacher_detail' d.teacher.id %}" style="background:#f0f2f5;color:#555;border:none;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:600;text-decoration:none"><i class="fas fa-eye"></i></a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% empty %}
+<div class="wti-card"><div class="wti-card-body text-center py-4 text-muted"><i class="fas fa-book" style="font-size:2rem;color:#ddd"></i><p class="mt-2" style="font-size:.85rem">No Core Subject facilitators yet</p></div></div>
+{% endfor %}
+
+{% else %}
+<!-- Departmental: single table -->
+<div class="wti-card">
+  <div class="wti-card-header">
+    <h5><i class="fas fa-building"></i> {{ dept_name }} — Facilitators ({{ today }})</h5>
+    <a href="{% url 'admin_dashboard' %}" style="font-size:.8rem;color:#003087;text-decoration:none"><i class="fas fa-arrow-left me-1"></i> Back</a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="wti-table">
+      <thead><tr><th>Facilitator</th><th>Staff ID</th><th>Subject</th><th>School</th><th>Check In</th><th>Lesson</th><th>Done At</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for d in teacher_data %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:.7rem">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#003087,#0047b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;overflow:hidden">
+                {% if d.teacher.profile_photo %}<img src="{{ d.teacher.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}{{ d.teacher.user.first_name|first|upper }}{{ d.teacher.user.last_name|first|upper }}{% endif %}
+              </div>
+              <div><div style="font-weight:600;font-size:.87rem;color:#001f5c">{{ d.teacher.full_name }}</div><small style="color:#888">{{ d.teacher.user.email }}</small></div>
+            </div>
+          </td>
+          <td><code style="font-size:.8rem;background:#e8f0fe;color:#003087;padding:2px 8px;border-radius:5px">{{ d.teacher.staff_id }}</code></td>
+          <td style="font-size:.82rem">{{ d.teacher.preferred_subject|title }}</td>
+          <td>{% if d.school_status == 'present' %}<span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-check-circle me-1"></i>Present</span>{% elif d.school_status == 'late' %}<span style="background:rgba(255,193,7,.15);color:#856404;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px">Late</span>{% elif d.school_status == 'absent' %}<span style="background:rgba(220,53,69,.1);color:#dc3545;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-times-circle me-1"></i>Absent</span>{% else %}<span style="background:rgba(108,117,125,.12);color:#6c757d;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px">Unverified</span>{% endif %}</td>
+          <td style="font-size:.82rem;color:#666">{{ d.check_in|default:"—" }}</td>
+          <td>{% if d.lesson_status == 'done' %}<span style="background:rgba(0,48,135,.1);color:#003087;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-book me-1"></i>Done</span>{% else %}<span style="background:rgba(255,193,7,.15);color:#856404;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px"><i class="fas fa-clock me-1"></i>Pending</span>{% endif %}</td>
+          <td style="font-size:.82rem;color:#666">{{ d.lesson_done|default:"—" }}</td>
+          <td><a href="{% url 'teacher_detail' d.teacher.id %}" style="background:#f0f2f5;color:#555;border:none;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:600;text-decoration:none"><i class="fas fa-eye"></i></a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;padding:2rem;color:#888;font-size:.85rem">No facilitators in this department</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

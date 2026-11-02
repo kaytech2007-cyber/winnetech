@@ -1,0 +1,26 @@
+{% extends base_template %}
+{% block title %}{% if programme %}Edit{% else %}Create{% endif %} Programme — WTI{% endblock %}
+{% block page_title %}Programme Management{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold">{% if programme %}Edit programme{% else %}Create programme{% endif %}</div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="btn btn-primary" type="submit">Save programme</button>
+        <a class="btn btn-outline-secondary" href="{% if role == 'admin' %}{% url 'admin_programmes' %}{% else %}{% url 'superadmin_programmes' %}{% endif %}">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

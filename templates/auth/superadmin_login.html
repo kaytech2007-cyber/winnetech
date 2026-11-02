@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Super Admin — WTI{% endblock %}
+{% block body %}
+<div style="min-height:100vh;background:linear-gradient(135deg,#001f5c,#003087);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+  <div style="background:#fff;border-radius:20px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <img src="{% static 'images/logo.png' %}" style="width:65px;height:65px;border-radius:50%;border:3px solid #003087;object-fit:cover">
+      <h4 style="font-weight:800;color:#003087;margin:.5rem 0 0;font-size:1.2rem">Super Admin Portal</h4>
+      <p style="color:#888;font-size:.8rem;margin:0">Winneba Technical Institute — Technical Access</p>
+    </div>
+    {% if error %}
+    <div class="alert alert-danger" style="font-size:.83rem;border-radius:10px"><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#555"><i class="fas fa-crown me-1" style="color:#003087"></i> Super Admin Username</label>
+        <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus autocomplete="username">
+      </div>
+      <div class="mb-4">
+        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#555"><i class="fas fa-lock me-1" style="color:#003087"></i> Password</label>
+        <div class="position-relative">
+          <input type="password" name="password" id="sp" class="form-control" placeholder="Enter password" required autocomplete="current-password">
+          <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-muted" onclick="var e=document.getElementById('sp');e.type=e.type=='password'?'text':'password'"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <button type="submit" style="background:linear-gradient(135deg,#003087,#0047b3);color:#fff;border:none;border-radius:10px;padding:.7rem 1.5rem;font-weight:700;font-size:.9rem;width:100%;cursor:pointer">
+        <i class="fas fa-sign-in-alt me-2"></i> Access Super Admin
+      </button>
+    </form>
+    <div style="text-align:center;margin-top:1.2rem">
+      <a href="{% url 'welcome' %}" style="font-size:.8rem;color:#888;text-decoration:none"><i class="fas fa-arrow-left me-1"></i> Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

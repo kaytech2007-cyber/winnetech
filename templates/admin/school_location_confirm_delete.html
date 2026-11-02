@@ -1,0 +1,46 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="h4"><i class="fas fa-trash me-2"></i>Delete School Location</h2>
+  <a href="{% url 'school_location_list' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Back to Locations
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> This action cannot be undone.
+        </div>
+
+        <p>Are you sure you want to delete the following school location?</p>
+
+        <div class="bg-light p-3 rounded mb-4">
+          <h5 class="mb-2">{{ location.name }}</h5>
+          <div class="small text-muted">
+            <div><strong>Latitude:</strong> {{ location.latitude }}</div>
+            <div><strong>Longitude:</strong> {{ location.longitude }}</div>
+            <div><strong>Radius:</strong> {{ location.allowed_radius }}m</div>
+            <div><strong>Status:</strong> {% if location.is_active %}Active{% else %}Inactive{% endif %}</div>
+          </div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-trash me-2"></i>Yes, Delete Location
+            </button>
+            <a href="{% url 'school_location_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

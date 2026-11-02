@@ -1,0 +1,186 @@
+{% extends base_template %}
+{% block title %}Add Facilitator — WTI{% endblock %}
+{% block page_title %}Add New Facilitator{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+
+{% block content %}
+<main class="container-fluid px-0">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <h1 class="h4">Create Facilitator account</h1>
+      <p class="text-muted">The Facilitator will receive a one-time password setup link by email. Staff ID is generated automatically.</p>
+
+      {% if error %}<div class="alert alert-danger" role="alert">{{ error }}
+        {% if retry_user_id %}<form method="post" action="{% url 'retry_staff_onboarding' retry_user_id %}" class="mt-2">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Retry password setup email</button></form>{% endif %}
+      </div>{% endif %}
+      {% if success %}<div class="alert alert-success" role="status">{{ success }}</div>{% endif %}
+
+      {% if created_user %}
+        <p><strong>Generated Staff ID:</strong> <code>{{ created_user.username }}</code></p>
+        <a class="btn btn-primary" href="{% if role == 'admin' %}{% url 'admin_facilitator_records' %}{% else %}{% url 'superadmin_facilitator_records' %}{% endif %}">Return to Facilitator Records</a>
+      {% else %}
+      {% if not programmes %}
+        <div class="alert alert-warning" role="status">
+          No active programmes are available. Create or activate a programme in
+          <a href="{% if role == 'admin' %}{% url 'admin_programmes' %}{% else %}{% url 'superadmin_programmes' %}{% endif %}">Programme Management</a>
+          before registering a Facilitator.
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" novalidate id="facilitator-create-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <fieldset class="mb-4">
+          <legend class="h6">Facilitator type <span class="text-danger">*</span></legend>
+          {% for choice in form.employment_type %}
+            <div class="form-check form-check-inline">
+              {{ choice.tag }}
+              <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+            </div>
+          {% endfor %}
+          {% for error in form.employment_type.errors %}<div class="small text-danger">{{ error }}</div>{% endfor %}
+        </fieldset>
+
+        <div class="row g-3">
+          {% for field in form %}
+            {% if field.name != 'employment_type' and field.name != 'supervisor' and field.name != 'internship_start_date' %}
+            <div class="col-md-6" {% if field.name == 'department' %}id="department-field"{% endif %}>
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% for error in field.errors %}<div class="small text-danger">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+          {% endfor %}
+
+          <div class="col-12">
+            <div id="programme-hod-status" class="form-text" aria-live="polite">The selected programme's HOD will be identified automatically.</div>
+          </div>
+          <div class="col-md-6 internship-field" hidden>
+            <label class="form-label" for="{{ form.internship_start_date.id_for_label }}">Internship start date <span class="text-danger">*</span></label>
+            {{ form.internship_start_date }}
+            {% for error in form.internship_start_date.errors %}<div class="small text-danger">{{ error }}</div>{% endfor %}
+            <div class="form-text">The default end date is one year after the start date.</div>
+          </div>
+          <div class="col-md-6 internship-field" hidden>
+            <label class="form-label" for="{{ form.supervisor.id_for_label }}">Permanent Facilitator supervisor <span class="text-danger">*</span></label>
+            {{ form.supervisor }}
+            {% for error in form.supervisor.errors %}<div class="small text-danger">{{ error }}</div>{% endfor %}
+            <div id="supervisor-status" class="form-text" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <a class="btn btn-outline-secondary" href="{% if role == 'admin' %}{% url 'admin_facilitator_records' %}{% else %}{% url 'superadmin_facilitator_records' %}{% endif %}">Cancel</a>
+          <button class="btn btn-primary" type="submit" {% if not programmes %}disabled{% endif %}>Create Facilitator</button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+{{ elective_subjects|json_script:"elective-subject-options" }}
+{{ department_subjects|json_script:"department-subject-options" }}
+{{ department_subject_map|json_script:"department-subject-map" }}
+<script>
+(function () {
+  var form = document.getElementById('facilitator-create-form');
+  if (!form) return;
+  var programme = document.getElementById('id_programme');
+  var supervisor = document.getElementById('id_supervisor');
+  var status = document.getElementById('supervisor-status');
+  var hodStatus = document.getElementById('programme-hod-status');
+  var courseType = document.getElementById('id_course_type');
+  var subject = document.getElementById('id_preferred_subject');
+  var departmentField = document.getElementById('department-field');
+  var electiveOptions = JSON.parse(document.getElementById('elective-subject-options').textContent);
+  var departmentOptions = JSON.parse(document.getElementById('department-subject-options').textContent);
+  var departmentSubjectMap = JSON.parse(document.getElementById('department-subject-map').textContent);
+  var internshipFields = document.querySelectorAll('.internship-field');
+  var typeChoices = form.querySelectorAll('input[name="employment_type"]');
+  var endpointTemplate = "{% url 'programme_supervisors' 1 %}";
+
+  function refreshType() {
+    var selected = form.querySelector('input[name="employment_type"]:checked');
+    var isIntern = selected && selected.value === 'INTERNSHIP';
+    internshipFields.forEach(function (field) {
+      field.hidden = !isIntern;
+      field.querySelectorAll('input,select').forEach(function (input) {
+        input.required = isIntern;
+      });
+    });
+    if (!isIntern) {
+      supervisor.replaceChildren(new Option('-- Select Permanent Supervisor --', ''));
+      status.textContent = '';
+    }
+  }
+
+  function refreshSubjects() {
+    var previousValue = subject.value;
+    var options = courseType.value === 'core'
+      ? electiveOptions
+      : courseType.value === 'departmental'
+        ? departmentOptions.filter(function (entry) {
+          return (departmentSubjectMap[document.getElementById('id_department').value] || [])
+            .indexOf(entry[0]) !== -1;
+        })
+        : [];
+    subject.replaceChildren(new Option('-- Select Subject --', ''));
+    options.forEach(function (entry) {
+      subject.add(new Option(entry[1], entry[0]));
+    });
+    if (options.some(function (entry) { return entry[0] === previousValue; })) {
+      subject.value = previousValue;
+    }
+    departmentField.hidden = courseType.value !== 'departmental';
+    document.getElementById('id_department').required = courseType.value === 'departmental';
+  }
+
+  function loadSupervisors() {
+    supervisor.replaceChildren(new Option('-- Select Permanent Supervisor --', ''));
+    status.textContent = '';
+    hodStatus.textContent = "The selected programme's HOD will be identified automatically.";
+    if (!programme.value) return;
+    var requestedProgrammeId = programme.value;
+    status.textContent = 'Loading active Permanent Facilitators...';
+    var endpoint = endpointTemplate.replace('/1/supervisors/', '/' + requestedProgrammeId + '/supervisors/');
+    fetch(endpoint, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+      .then(function (response) {
+        if (!response.ok) throw new Error('Unable to load supervisors.');
+        return response.json();
+      })
+      .then(function (data) {
+        if (programme.value !== requestedProgrammeId) return;
+        hodStatus.textContent = data.hod
+          ? 'Assigned HOD: ' + data.hod.name + ' (' + data.hod.staff_id + ').'
+          : 'No active HOD is assigned to this programme yet.';
+        data.supervisors.forEach(function (person) {
+          supervisor.add(new Option(person.name + ' (' + person.staff_id + ')', person.id));
+        });
+        status.textContent = data.supervisors.length
+          ? 'Only active Permanent Facilitators in this programme are listed.'
+          : 'No active Permanent Facilitators are available for this programme.';
+      })
+      .catch(function () {
+        if (programme.value !== requestedProgrammeId) return;
+        status.textContent = 'Supervisor options could not be loaded. Change the programme or reload the page.';
+      });
+  }
+
+  typeChoices.forEach(function (choice) {
+    choice.addEventListener('change', function () {
+      refreshType();
+      if (choice.value === 'INTERNSHIP') loadSupervisors();
+    });
+  });
+  courseType.addEventListener('change', refreshSubjects);
+  document.getElementById('id_department').addEventListener('change', refreshSubjects);
+  programme.addEventListener('change', loadSupervisors);
+  refreshType();
+  refreshSubjects();
+  if (programme.value) loadSupervisors();
+})();
+</script>
+{% endblock %}

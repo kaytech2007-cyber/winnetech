@@ -1,0 +1,12 @@
+{% extends 'hod/base_hod.html' %}
+{% block page_heading %}Internship Supervision{% endblock %}
+{% block content %}
+<div class="hod-card">
+  <p>Programme oversight by the HOD is distinct from direct Permanent Facilitator supervision.</p>
+  <div class="hod-table-wrap"><table class="table mb-0"><thead><tr><th>Internship Facilitator</th><th>Permanent Facilitator</th><th>From</th><th>To</th><th>Status</th><th>Manage</th></tr></thead><tbody>
+    {% for assignment in assignments %}<tr><td>{{ assignment.internship.full_name }}</td><td>{{ assignment.supervisor.full_name }}</td><td>{{ assignment.start_date }}</td><td>{{ assignment.end_date|default:'Current' }}</td><td>{% if assignment.is_active %}Active{% else %}Ended{% endif %}</td><td><a href="{% url 'hod_facilitator_manage' assignment.internship.teacher_id %}">Manage</a></td></tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-muted">No supervision history is recorded for this programme.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if assignments.paginator.num_pages > 1 %}<nav class="mt-3">{% if assignments.has_previous %}<a href="?page={{ assignments.previous_page_number }}">Previous</a>{% endif %} Page {{ assignments.number }} of {{ assignments.paginator.num_pages }} {% if assignments.has_next %}<a href="?page={{ assignments.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

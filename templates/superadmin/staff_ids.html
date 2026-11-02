@@ -1,0 +1,63 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}Staff ID Registry — WTI{% endblock %}
+{% block page_title %}Facilitator Staff ID Registry{% endblock %}
+{% block nav_staffids %}active{% endblock %}
+{% block content %}
+<div class="sa-card">
+  <div class="sa-card-header">
+    <h5><i class="fas fa-id-card"></i> All Facilitator Staff IDs ({{ teachers.count }})</h5>
+    <input type="text" id="srch" class="form-control" placeholder="Search..." style="width:200px;font-size:.83rem"
+           oninput="document.querySelectorAll('#tbl tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(this.value.toLowerCase())?'':'none')">
+  </div>
+  <div style="overflow-x:auto">
+    <table id="tbl" style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="background:#f8f9fa">
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">#</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Staff ID</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Full Name</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Subject</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Type</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Status</th>
+          <th style="padding:.8rem 1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#666;border-bottom:2px solid #e8ecf0">Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in teachers %}
+        <tr style="border-bottom:1px solid #f0f2f5">
+          <td style="padding:.8rem 1rem;color:#888;font-size:.8rem">{{ forloop.counter }}</td>
+          <td style="padding:.8rem 1rem">
+            <code style="background:#e8f0fe;color:#003087;padding:3px 10px;border-radius:6px;font-size:.85rem;font-weight:700">{{ t.staff_id }}</code>
+          </td>
+          <td style="padding:.8rem 1rem">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#003087,#0047b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.75rem;flex-shrink:0;overflow:hidden">
+                {% if t.profile_photo %}<img src="{{ t.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}{{ t.user.first_name|first|upper }}{{ t.user.last_name|first|upper }}{% endif %}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:.87rem;color:#001f5c">{{ t.full_name }}</div>
+                <small style="color:#888">{{ t.user.email }}</small>
+              </div>
+            </div>
+          </td>
+          <td style="padding:.8rem 1rem;font-size:.82rem">{{ t.preferred_subject|title }}</td>
+          <td style="padding:.8rem 1rem">
+            <span style="background:rgba(0,48,135,.1);color:#003087;font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:20px">{{ t.get_course_type_display }}</span>
+          </td>
+          <td style="padding:.8rem 1rem">
+            {% if t.is_approved %}
+              <span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:20px"><i class="fas fa-check-circle me-1"></i>Active</span>
+            {% else %}
+              <span style="background:rgba(255,193,7,.15);color:#856404;font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:20px"><i class="fas fa-clock me-1"></i>Pending</span>
+            {% endif %}
+          </td>
+          <td style="padding:.8rem 1rem;font-size:.8rem;color:#888">{{ t.date_joined|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;padding:2rem;color:#888;font-size:.85rem">No facilitators registered yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

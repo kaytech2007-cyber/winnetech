@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: winnitech-staff-system
+    runtime: python
+
+    buildCommand: "./build.sh"
+
+    startCommand: "daphne -b 0.0.0.0 -p $PORT winnitech.asgi:application"
+
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+
+      - key: PYTHON_VERSION
+        value: "3.11.0"

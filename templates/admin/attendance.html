@@ -1,0 +1,136 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Attendance — WTI Admin{% endblock %}
+{% block page_title %}Attendance Management{% endblock %}
+{% block nav_attendance %}active{% endblock %}
+{% block mob_attendance %}active{% endblock %}
+
+{% block content %}
+<!-- Date Filter -->
+<div class="wti-card mb-3">
+  <div class="wti-card-body">
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+      <label class="form-label mb-0 fw-bold">Select Date:</label>
+      <input type="date" name="date" value="{{ selected_date }}" class="form-control" style="width:200px" onchange="this.form.submit()">
+      <span class="text-muted" style="font-size:0.85rem">School Hours: 7:00 AM – 3:30 PM</span>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Present Facilitators -->
+  <div class="col-lg-7">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-clipboard-check" style="color:var(--success)"></i> Attendance Records — {{ selected_date }}</h5>
+        <span class="badge bg-success">{{ attendances.count }}</span>
+      </div>
+      <div class="wti-card-body p-0">
+        <div class="table-responsive">
+          <table class="wti-table">
+            <thead>
+              <tr><th>Facilitator</th><th>Check In</th><th>Lesson Done</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for att in attendances %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="teacher-avatar">
+                      {% if att.teacher.profile_photo %}
+                        <img src="{{ att.teacher.profile_photo.url }}" alt="">
+                      {% else %}
+                        {{ att.teacher.user.first_name|first }}{{ att.teacher.user.last_name|first }}
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div style="font-weight:600;font-size:0.85rem">{{ att.teacher.full_name }}</div>
+                      <small class="text-muted">{{ att.teacher.staff_id }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if att.check_in_time %}
+                    <span style="color:var(--success);font-weight:600">{{ att.check_in_time }}</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if att.lesson_done_time %}
+                    <span style="color:var(--accent);font-weight:600">{{ att.lesson_done_time }}</span>
+                  {% else %}
+                    <span class="text-muted">Not yet</span>
+                  {% endif %}
+                </td>
+                <td><span class="status-badge {{ att.school_status }}">{{ att.get_school_status_display }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No attendance records for this date</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="wti-card mt-3">
+        <div class="wti-card-header">
+          <h5><i class="fas fa-circle-question" style="color:var(--accent)"></i> Unverified — {{ selected_date }}</h5>
+          <span class="badge bg-warning text-dark">{{ unverified_teachers.count }}</span>
+        </div>
+        <div class="wti-card-body p-0">
+          {% for t in unverified_teachers %}
+          <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+            <div class="teacher-avatar">
+              {% if t.profile_photo %}
+                <img src="{{ t.profile_photo.url }}" alt="">
+              {% else %}
+                {{ t.user.first_name|first }}{{ t.user.last_name|first }}
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div style="font-size:0.85rem;font-weight:600">{{ t.full_name }}</div>
+              <small class="text-muted">{{ t.staff_id }} · {{ t.get_course_type_display }}</small>
+            </div>
+            <span class="status-badge unverified">Unverified</span>
+          </div>
+          {% empty %}
+          <div class="p-3 text-center text-muted" style="font-size:0.85rem">Attendance evidence is available for all approved facilitators.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Records -->
+  <div class="col-lg-5">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-user-times" style="color:var(--danger)"></i> Absent — {{ selected_date }}</h5>
+        <span class="badge bg-danger">{{ absent_teachers.count }}</span>
+      </div>
+      <div class="wti-card-body p-0">
+        {% for t in absent_teachers %}
+        <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+          <div class="teacher-avatar">
+            {% if t.profile_photo %}
+              <img src="{{ t.profile_photo.url }}" alt="">
+            {% else %}
+              {{ t.user.first_name|first }}{{ t.user.last_name|first }}
+            {% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div style="font-size:0.85rem;font-weight:600">{{ t.full_name }}</div>
+            <small class="text-muted">{{ t.staff_id }} · {{ t.get_course_type_display }}</small>
+          </div>
+          <span class="status-badge absent">Absent</span>
+        </div>
+        {% empty %}
+        <div class="p-4 text-center text-muted" style="font-size:0.85rem">
+          <i class="fas fa-check-circle text-success" style="font-size:2rem"></i>
+          <p class="mt-2">No attendance records for this date.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}Super Admin Dashboard — WTI{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="sa-stat"><div class="sa-stat-icon blue"><i class="fas fa-user-shield"></i></div><div><h3>{{ total_admins }}</h3><p>Total Admins</p></div></div></div>
+  <div class="col-6 col-md-3"><div class="sa-stat"><div class="sa-stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div><div><h3>{{ total_teachers }}</h3><p>Total Facilitators</p></div></div></div>
+  <div class="col-6 col-md-3"><div class="sa-stat"><div class="sa-stat-icon red"><i class="fas fa-clock"></i></div><div><h3>{{ pending_count }}</h3><p>Pending Approval</p></div></div></div>
+  <div class="col-6 col-md-3"><div class="sa-stat"><div class="sa-stat-icon green"><i class="fas fa-user-check"></i></div><div><h3>{{ present_today }}</h3><p>Present Today</p></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="sa-card">
+      <div class="sa-card-header"><h5><i class="fas fa-user-shield"></i> Admin Accounts</h5><a href="{% url 'superadmin_admins' %}" style="font-size:.8rem;color:#003087;text-decoration:none">View All</a></div>
+      <div style="padding:0">
+        {% for a in admins %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:.8rem 1.2rem;border-bottom:1px solid #f0f2f5;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#003087,#0047b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">{{ a.first_name|first|upper }}{{ a.last_name|first|upper }}</div>
+          <div style="flex:1"><div style="font-size:.85rem;font-weight:600;color:#001f5c">{{ a.get_full_name|default:a.username }}</div><small style="color:#888">{{ a.username }}</small></div>
+          {% if a.admin_profile.role == 'superadmin' %}<span style="background:rgba(0,48,135,.1);color:#003087;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px"><i class="fas fa-crown me-1"></i>Super</span>
+          {% else %}<span style="background:rgba(40,167,69,.1);color:#28a745;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px">Admin</span>{% endif %}
+        </div>
+        {% empty %}<div style="padding:1.5rem;text-align:center;color:#888;font-size:.85rem">No admins</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="sa-card">
+      <div class="sa-card-header"><h5><i class="fas fa-clock"></i> Pending Facilitator Approvals</h5><a href="{% url 'superadmin_teachers' %}" style="font-size:.8rem;color:#003087;text-decoration:none">View All</a></div>
+      <div style="padding:0">
+        {% for t in pending %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:.8rem 1.2rem;border-bottom:1px solid #f0f2f5;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8920a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">{{ t.user.first_name|first|upper }}{{ t.user.last_name|first|upper }}</div>
+          <div style="flex:1"><div style="font-size:.85rem;font-weight:600;color:#001f5c">{{ t.full_name }}</div><small style="color:#888">{{ t.get_course_type_display }}</small></div>
+          <form method="post" action="{% url 'superadmin_approve_teacher' t.id %}">
+            {% csrf_token %}
+            <button type="submit" style="background:#28a745;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:.75rem;font-weight:600">Approve</button>
+          </form>
+        </div>
+        {% empty %}<div style="padding:1.5rem;text-align:center;color:#888;font-size:.85rem"><i class="fas fa-check-circle" style="color:#28a745;font-size:1.5rem"></i><p class="mt-2">All facilitators approved!</p></div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

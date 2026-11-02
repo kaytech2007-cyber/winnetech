@@ -1,0 +1,39 @@
+{% extends 'superadmin/base_superadmin.html' %}
+{% block title %}Create Admin — WTI{% endblock %}
+{% block page_title %}Create New Admin{% endblock %}
+{% block nav_create %}active{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="sa-card">
+      <div class="sa-card-header"><h1 class="h5 mb-0">Create Admin Account</h1></div>
+      <div class="p-4">
+        {% if error %}<div class="alert alert-danger" role="alert">{{ error }}
+          {% if retry_user_id %}<form method="post" action="{% url 'retry_staff_onboarding' retry_user_id %}" class="mt-2">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger">Retry password setup email</button></form>{% endif %}
+        </div>{% endif %}
+        {% if created_user %}
+          {% if success %}<div class="alert alert-success" role="status">{{ success }}</div>{% endif %}
+          <p><strong>Generated Staff ID:</strong> <code>{{ staff_id }}</code></p>
+          <a class="btn btn-primary" href="{% url 'superadmin_admins' %}">Return to Admin Records</a>
+        {% else %}
+        <p class="text-muted">A unique Staff ID is generated automatically. The Admin receives a single-use password setup link by email; no password is sent or stored.</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }} <span class="text-danger">*</span></label>
+              {{ field }}
+              {% for error in field.errors %}<div class="small text-danger">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-4">
+            <a href="{% url 'superadmin_admins' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Admin</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends base_template %}
+{% block title %}Programme Management — WTI{% endblock %}
+{% block page_title %}Programme Management{% endblock %}
+{% block page_heading %}Programme Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1">Programmes</h2>
+      <p class="text-muted mb-0">Programme assignments and facilitator totals.</p>
+    </div>
+    {% if role != 'hod' %}
+      <a class="btn btn-primary" href="{% if role == 'admin' %}{% url 'admin_programme_create' %}{% else %}{% url 'superadmin_programme_create' %}{% endif %}">Create programme</a>
+    {% endif %}
+  </div>
+  <div class="table-responsive bg-white rounded shadow-sm p-3">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Programme</th><th>Code</th><th>Category</th><th>HOD</th><th>Permanent</th><th>Internship</th><th>Status</th><th>Details</th></tr></thead>
+      <tbody>
+      {% for programme in programmes %}
+        <tr>
+          <td>{{ programme.name }}</td>
+          <td>{{ programme.code }}</td>
+          <td>{{ programme.get_category_display }}</td>
+          <td>{% if programme.hod_profile %}{{ programme.hod_profile.full_name }}{% else %}Not assigned{% endif %}</td>
+          <td>{{ programme.permanent_count }}</td>
+          <td>{{ programme.internship_count|default:0 }}</td>
+          <td>{% if programme.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+          <td><a class="btn btn-sm btn-outline-primary" href="{% if role == 'hod' %}{% url 'hod_programme' %}{% elif role == 'admin' %}{% url 'admin_programme_detail' programme.pk %}{% else %}{% url 'superadmin_programme_detail' programme.pk %}{% endif %}">View</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No programmes have been created.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

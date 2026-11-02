@@ -1,0 +1,137 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Schedule Classes — WTI Admin{% endblock %}
+{% block page_title %}Schedule Classes{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Schedule Form -->
+  <div class="col-lg-4">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-calendar-plus"></i> Schedule a Class</h5>
+      </div>
+      <div class="wti-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="mb-3">
+            <label class="form-label">Timetable Entry *</label>
+            {{ form.timetable_entry }}
+            {{ form.timetable_entry.errors }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Assign Facilitator *</label>
+            {{ form.teacher }}
+            {{ form.teacher.errors }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date *</label>
+            {{ form.scheduled_date }}
+            {{ form.scheduled_date.errors }}
+          </div>
+          <div class="alert alert-info" style="font-size:0.8rem;border-radius:10px">
+            <i class="fas fa-info-circle me-2"></i>
+            A class is not assigned unless the scheduling evaluation passes, the Facilitator accepts, and the final eligibility re-check passes.
+          </div>
+          <button type="submit" name="action" value="request_confirmation" class="btn btn-outline-primary w-100 py-2 rounded-3">
+            <i class="fas fa-clipboard-check me-2"></i> Evaluate &amp; Request Confirmation
+          </button>
+        </form>
+        {% if scheduling_evaluation %}
+        <div class="alert {% if scheduling_evaluation.status == 'BLOCKED' %}alert-danger{% else %}alert-warning{% endif %} mt-3">
+          <strong>Evaluation: {{ scheduling_evaluation.get_status_display }}</strong>
+          <ul class="mb-0 mt-2">
+            {% for rule in scheduling_evaluation.rule_results %}
+            {% if rule.status == 'BLOCKED' or rule.status == 'UNVERIFIED' %}
+            <li><strong>{{ rule.key|title }}:</strong> {{ rule.explanation }}</li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Classes -->
+  <div class="col-lg-8">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-list-alt"></i> Scheduled Classes</h5>
+      </div>
+      <div class="wti-card-body p-0">
+        <div class="table-responsive">
+          <table class="wti-table">
+            <thead>
+              <tr>
+                <th>Facilitator</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in schedules %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="teacher-avatar" style="width:32px;height:32px;font-size:0.75rem">
+                      {{ s.teacher.user.first_name|first }}{{ s.teacher.user.last_name|first }}
+                    </div>
+                    <span style="font-size:0.85rem;font-weight:600">{{ s.teacher.full_name }}</span>
+                  </div>
+                </td>
+                <td style="font-size:0.85rem">{{ s.timetable_entry.subject }}</td>
+                <td style="font-size:0.82rem">{{ s.scheduled_date }}</td>
+                <td style="font-size:0.82rem;color:#888">
+                  {{ s.timetable_entry.start_time|time:"H:i" }} – {{ s.timetable_entry.end_time|time:"H:i" }}
+                </td>
+                <td>
+                  {% if s.is_completed %}
+                    <span class="status-badge approved"><i class="fas fa-check"></i> Done</span>
+                  {% else %}
+                    <span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No classes scheduled yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wti-card mt-3">
+  <div class="wti-card-header">
+    <h5><i class="fas fa-clipboard-list"></i> Facilitator confirmation requests</h5>
+  </div>
+  <div class="wti-card-body p-0">
+    <div class="table-responsive">
+      <table class="wti-table">
+        <thead><tr><th>Facilitator</th><th>Class</th><th>Date and time</th><th>Programme</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for confirmation in confirmation_requests %}
+          <tr>
+            <td>{{ confirmation.candidate.full_name }}</td>
+            <td>{{ confirmation.timetable_entry.subject }}</td>
+            <td>{{ confirmation.scheduled_date }} · {{ confirmation.start_time|time:"H:i" }}–{{ confirmation.end_time|time:"H:i" }}</td>
+            <td>{{ confirmation.programme.code }}</td>
+            <td>{{ confirmation.get_status_display }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No confirmation requests have been sent.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

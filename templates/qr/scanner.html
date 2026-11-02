@@ -1,0 +1,322 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>QR Scanner — WTI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#001f5c,#003087);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;}
+    .sc-card{background:#fff;border-radius:20px;padding:1.8rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+    .sc-head{text-align:center;margin-bottom:1.2rem;}
+    .sc-head img{width:55px;height:55px;border-radius:50%;border:3px solid #003087;object-fit:contain;background:#fff;padding:3px;margin-bottom:.5rem;}
+    .sc-head h5{font-weight:800;color:#003087;margin:0;font-size:1.1rem;}
+    .sc-head p{color:#888;font-size:.8rem;margin:.2rem 0 0;}
+    #viewfinder{width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:260px;display:flex;align-items:center;justify-content:center;position:relative;}
+    #viewfinder video{width:100%;border-radius:12px;display:block;}
+    .scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+    .scan-box{width:200px;height:200px;border:3px solid #003087;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.4);}
+    .scan-line{position:absolute;width:180px;height:3px;background:linear-gradient(90deg,transparent,#003087,transparent);animation:scan 2s linear infinite;}
+    @keyframes scan{0%{top:calc(50% - 90px)}100%{top:calc(50% + 90px)}}
+    .btn-start{background:linear-gradient(135deg,#003087,#0047b3);color:#fff;border:none;border-radius:50px;padding:.8rem 2rem;font-weight:700;font-size:.95rem;cursor:pointer;width:100%;margin-top:.8rem;display:flex;align-items:center;justify-content:center;gap:.5rem;}
+    .btn-start:hover{opacity:.9;}
+    .btn-start:disabled{opacity:.6;cursor:not-allowed;}
+    .status-box{margin-top:.8rem;padding:.8rem 1rem;border-radius:10px;font-size:.83rem;font-weight:600;text-align:center;display:none;}
+    .status-box.error{background:#fff3f3;color:#dc3545;border:1px solid #f5c6cb;}
+    .status-box.success{background:#f0fff4;color:#28a745;border:1px solid #c3e6cb;}
+    .status-box.info{background:#e8f0fe;color:#003087;border:1px solid #b8d0f8;}
+    .manual-section{margin-top:1rem;padding-top:1rem;border-top:1px solid #f0f2f5;}
+    .manual-section p{font-size:.75rem;color:#888;text-align:center;margin-bottom:.5rem;}
+    .back-link{color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-top:1.2rem;display:inline-flex;align-items:center;gap:.4rem;}
+    .back-link:hover{color:#f5a623;}
+    .permission-guide{background:#e8f0fe;border-radius:10px;padding:.8rem 1rem;font-size:.78rem;color:#003087;margin-top:.8rem;display:none;}
+    .permission-guide ol{padding-left:1.2rem;margin:.4rem 0 0;}
+    .permission-guide li{margin-bottom:.2rem;}
+  </style>
+</head>
+<body>
+  <div class="sc-card">
+    <div class="sc-head">
+      <img src="{% static 'images/logo.png' %}" alt="WTI">
+      <h5>QR Code Scanner</h5>
+      <p>Scan the attendance QR code on the classroom wall</p>
+    </div>
+
+    <!-- Camera viewfinder -->
+    <div id="viewfinder">
+      <div style="text-align:center;color:#888;padding:2rem">
+        <i class="fas fa-camera" style="font-size:2.5rem;color:#ddd;display:block;margin-bottom:.5rem"></i>
+        <span style="font-size:.82rem">Camera will appear here</span>
+      </div>
+    </div>
+
+    <form id="attendanceScanForm" method="post" hidden>
+      {% csrf_token %}
+      <input type="hidden" name="lat">
+      <input type="hidden" name="lon">
+    </form>
+
+    <!-- Status messages -->
+    <div class="status-box" id="statusBox"></div>
+
+    <!-- Permission guide (shown on error) -->
+    <div class="permission-guide" id="permGuide">
+      <strong><i class="fas fa-info-circle me-1"></i>How to allow camera:</strong>
+      <ol>
+        <li><strong>Chrome/Android:</strong> Tap the lock icon in address bar → Site settings → Camera → Allow</li>
+        <li><strong>Safari/iPhone:</strong> Settings → Safari → Camera → Allow</li>
+        <li><strong>Then refresh this page</strong></li>
+      </ol>
+    </div>
+
+    <!-- Start button -->
+    <button class="btn-start" id="startBtn" onclick="startScanner()">
+      <i class="fas fa-camera"></i> Tap to Start Camera
+    </button>
+
+    <!-- Manual URL entry -->
+    <div class="manual-section">
+      <p>Or paste the QR URL manually:</p>
+      <div class="input-group">
+        <input type="url" id="manualUrl" class="form-control" placeholder="Paste QR URL here..." style="font-size:.83rem;border-radius:10px 0 0 10px">
+        <button onclick="goToUrl()" style="background:#003087;color:#fff;border:none;padding:.5rem 1rem;border-radius:0 10px 10px 0;font-weight:600;cursor:pointer">Go</button>
+      </div>
+    </div>
+  </div>
+
+  <a href="{% if request.user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'facilitator_dashboard' %}{% endif %}" class="back-link">
+    <i class="fas fa-arrow-left"></i> Back to Dashboard
+  </a>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+  var html5Qrcode = null;
+  var scanning = false;
+  var scanned = false;
+  var userLocation = null;
+
+  function showStatus(msg, type) {
+    var box = document.getElementById('statusBox');
+    box.textContent = msg;
+    box.className = 'status-box ' + type;
+    box.style.display = 'block';
+  }
+
+  function getUserLocation() {
+    return new Promise(function(resolve, reject) {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          resolve({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude
+          });
+        },
+        function(error) {
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  function submitAttendanceScan(url) {
+    var target;
+    try {
+      target = new URL(url, window.location.origin);
+    } catch (error) {
+      showStatus('The QR code does not contain a valid attendance URL.', 'error');
+      return;
+    }
+    var match = target.pathname.match(/^\/scan\/(school|lesson)\/([0-9a-f-]{36})\/?$/i);
+    if (target.origin !== window.location.origin || !match || !userLocation) {
+      showStatus('The QR code URL or location is invalid.', 'error');
+      return;
+    }
+    var form = document.getElementById('attendanceScanForm');
+    form.action = target.pathname;
+    form.elements.lat.value = userLocation.lat;
+    form.elements.lon.value = userLocation.lon;
+    form.submit();
+  }
+
+  function startScanner() {
+    if (scanning) return;
+    var btn = document.getElementById('startBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+    showStatus('Getting your location...', 'info');
+    document.getElementById('permGuide').style.display = 'none';
+
+    // Get location first
+    getUserLocation()
+      .then(function(location) {
+        userLocation = location;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting camera...';
+        showStatus('Location acquired. Requesting camera permission...', 'info');
+        initCamera();
+      })
+      .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+        if (err.code === 1) {
+          showStatus('\u26a0\ufe0f Location permission denied. Please enable location services and try again.', 'error');
+        } else {
+          showStatus('Location error: ' + err.message + '. Please enable location services.', 'error');
+        }
+      });
+  }
+
+  function initCamera() {
+    // Check if we're on HTTPS or localhost
+    var isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      showStatus('Camera requires HTTPS. Please access the site via https://', 'error');
+      var btn = document.getElementById('startBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+      return;
+    }
+
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showStatus('Camera not supported on this browser. Try Chrome or Safari.', 'error');
+      var btn = document.getElementById('startBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+      return;
+    }
+
+    // Request permission explicitly first
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function(stream) {
+        // Permission granted — stop the test stream and start html5-qrcode
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        initQrScanner();
+      })
+      .catch(function(err) {
+        var btn = document.getElementById('startBtn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          showStatus('\u26a0\ufe0f Camera permission denied. Please allow camera access and try again.', 'error');
+          document.getElementById('permGuide').style.display = 'block';
+        } else if (err.name === 'NotFoundError') {
+          showStatus('No camera found on this device.', 'error');
+        } else if (err.name === 'NotReadableError') {
+          showStatus('Camera is in use by another app. Close it and try again.', 'error');
+        } else {
+          showStatus('Camera error: ' + err.message, 'error');
+        }
+      });
+  }
+
+  function initQrScanner() {
+    var viewfinder = document.getElementById('viewfinder');
+    viewfinder.innerHTML = '<div class="scan-overlay"><div class="scan-box"><div class="scan-line"></div></div></div>';
+
+    html5Qrcode = new Html5Qrcode('viewfinder');
+    scanning = true;
+
+    var config = {
+      fps: 15,
+      qrbox: { width: 200, height: 200 },
+      aspectRatio: 1.0,
+      disableFlip: false
+    };
+
+    html5Qrcode.start(
+      { facingMode: 'environment' },
+      config,
+      function(decodedText) {
+        if (scanned) return;
+        scanned = true;
+        html5Qrcode.stop().catch(function(){});
+        showStatus('\u2705 QR Code detected! Validating location...', 'success');
+        // Play success beep
+        try {
+          var ctx = new (window.AudioContext || window.webkitAudioContext)();
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = 1047;
+          gain.gain.setValueAtTime(0.4, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+          osc.start(); osc.stop(ctx.currentTime + 0.5);
+        } catch(e) {}
+        setTimeout(function() { submitAttendanceScan(decodedText); }, 800);
+      },
+      function() { /* ignore frame errors */ }
+    ).then(function() {
+      var btn = document.getElementById('startBtn');
+      btn.innerHTML = '<i class="fas fa-stop-circle"></i> Stop Camera';
+      btn.disabled = false;
+      btn.onclick = stopScanner;
+      showStatus('\ud83d\udcf7 Camera active — point at QR code', 'info');
+    }).catch(function(err) {
+      scanning = false;
+      var btn = document.getElementById('startBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+      btn.onclick = startScanner;
+      if (err.toString().includes('NotAllowed') || err.toString().includes('Permission')) {
+        showStatus('Camera permission denied. Please allow camera and try again.', 'error');
+        document.getElementById('permGuide').style.display = 'block';
+      } else {
+        showStatus('Could not start camera: ' + err, 'error');
+      }
+    });
+  }
+
+  function stopScanner() {
+    if (html5Qrcode && scanning) {
+      html5Qrcode.stop().then(function() {
+        scanning = false;
+        scanned = false;
+        var btn = document.getElementById('startBtn');
+        btn.innerHTML = '<i class="fas fa-camera"></i> Tap to Start Camera';
+        btn.onclick = startScanner;
+        document.getElementById('viewfinder').innerHTML = '<div style="text-align:center;color:#888;padding:2rem"><i class="fas fa-camera" style="font-size:2.5rem;color:#ddd;display:block;margin-bottom:.5rem"></i><span style="font-size:.82rem">Camera stopped</span></div>';
+        showStatus('Camera stopped.', 'info');
+      }).catch(function(){});
+    }
+  }
+
+  function goToUrl() {
+    var url = document.getElementById('manualUrl').value.trim();
+    if (url) {
+      getUserLocation()
+        .then(function(location) {
+          userLocation = location;
+          submitAttendanceScan(url);
+        })
+        .catch(function(error) {
+          showStatus('Location error: ' + error.message + '. Attendance was not submitted.', 'error');
+        });
+    }
+  }
+
+  // Auto-start on page load if permission already granted
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'camera' }).then(function(result) {
+      if (result.state === 'granted') {
+        startScanner();
+      }
+    }).catch(function() {});
+  }
+  </script>
+</body>
+</html>

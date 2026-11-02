@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Winneba Technical Institute — Staff Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --school-blue:#003087;
+  --school-blue-dark:#001f5c;
+  --school-blue-mid:#0047b3;
+  --school-white:#ffffff;
+  --school-light:#e8f0fe;
+  --gold:#f5a623;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--school-blue-dark);overflow-x:hidden;}
+
+/* Slideshow */
+.slideshow{position:fixed;inset:0;z-index:0;}
+.slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.5s ease-in-out;}
+.slide.active{opacity:1;}
+.slide::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,30,87,0.88) 0%,rgba(0,71,179,0.78) 50%,rgba(0,30,87,0.92) 100%);}
+
+/* Particles */
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+/* Wrapper */
+.welcome-wrapper{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;}
+
+/* Crest */
+.school-crest{width:110px;height:110px;border-radius:50%;border:4px solid var(--school-white);object-fit:contain;background:#fff;padding:6px;box-shadow:0 0 30px rgba(255,255,255,0.4);animation:pulse-glow 3s ease-in-out infinite;margin-bottom:1.2rem;}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(255,255,255,0.3);}50%{box-shadow:0 0 50px rgba(255,255,255,0.6),0 0 80px rgba(0,71,179,0.4);}}
+
+/* School name */
+.school-name{font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:800;color:var(--school-white);text-align:center;line-height:1.15;animation:fadeInUp 1s ease 0.2s both;letter-spacing:-0.5px;}
+.school-name .highlight{color:var(--gold);}
+
+/* System name */
+.system-name{font-size:clamp(0.85rem,2vw,1.05rem);font-weight:600;color:rgba(255,255,255,0.85);text-align:center;letter-spacing:1px;text-transform:uppercase;margin:0.6rem 0 0.3rem;animation:fadeInUp 1s ease 0.35s both;border-top:1px solid rgba(255,255,255,0.2);border-bottom:1px solid rgba(255,255,255,0.2);padding:0.5rem 1.5rem;}
+
+/* Tagline */
+.school-tagline{font-size:clamp(0.78rem,1.6vw,0.92rem);color:rgba(255,255,255,0.65);text-align:center;max-width:520px;margin:0.8rem auto 0.4rem;line-height:1.6;animation:fadeInUp 1s ease 0.45s both;font-style:italic;}
+.school-tagline .sub{display:block;font-size:clamp(0.72rem,1.4vw,0.82rem);color:rgba(255,255,255,0.45);margin-top:0.3rem;font-style:normal;font-weight:500;}
+
+/* Divider */
+.divider{width:60px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:1.5rem auto;animation:fadeIn 1s ease 0.6s both;}
+
+/* Portal Cards */
+.portal-cards{display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;animation:fadeInUp 1s ease 0.6s both;}
+.portal-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);border:1.5px solid rgba(255,255,255,0.18);border-radius:20px;padding:2rem 1.8rem;width:240px;text-align:center;text-decoration:none;color:#fff;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden;}
+.portal-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(0,71,179,0.1));opacity:0;transition:opacity 0.3s;}
+.portal-card:hover{transform:translateY(-10px) scale(1.03);border-color:rgba(255,255,255,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.3);color:#fff;}
+.portal-card:hover::before{opacity:1;}
+.portal-icon{width:65px;height:65px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 1rem;transition:transform 0.3s;}
+.portal-card:hover .portal-icon{transform:scale(1.15) rotate(5deg);}
+.portal-card.admin .portal-icon{background:linear-gradient(135deg,var(--school-blue-mid),var(--school-blue));border:2px solid rgba(255,255,255,0.3);box-shadow:0 8px 25px rgba(0,71,179,0.5);}
+.portal-card.register .portal-icon{background:linear-gradient(135deg,#fff,#e8f0fe);color:var(--school-blue);box-shadow:0 8px 25px rgba(255,255,255,0.3);}
+.portal-card h3{font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;}
+.portal-card p{font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.5;margin-bottom:1rem;}
+.portal-btn{display:inline-block;padding:9px 24px;border-radius:50px;font-size:0.82rem;font-weight:700;letter-spacing:0.5px;transition:all 0.3s;}
+.portal-card.admin .portal-btn{background:var(--school-white);color:var(--school-blue);}
+.portal-card.register .portal-btn{background:var(--school-blue-mid);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.portal-btn:hover{transform:scale(1.05);box-shadow:0 5px 20px rgba(0,0,0,0.3);}
+
+/* Staff login link */
+.teacher-login-link{margin-top:1.8rem;color:rgba(255,255,255,0.55);font-size:0.88rem;animation:fadeIn 1s ease 1s both;}
+.teacher-login-link a{color:var(--gold);text-decoration:none;font-weight:600;}
+.teacher-login-link a:hover{text-decoration:underline;}
+
+/* Footer */
+.welcome-footer{position:fixed;bottom:1rem;left:0;right:0;text-align:center;color:rgba(255,255,255,0.25);font-size:0.72rem;z-index:10;}
+
+/* Animations */
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideInUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+@media(max-width:576px){
+  .portal-card{width:100%;max-width:300px;}
+  .school-crest{width:85px;height:85px;}
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="slideshow" id="slideshow">
+  <div class="slide active" style="background-image:url('{% static 'images/logo.png' %}')"></div>
+  <div class="slide" style="background-image:url('{% static 'images/ChatGPT Image Apr 28, 2026, 10_05_56 AM.png' %}')"></div>
+  <div class="slide" style="background-image:url('{% static 'images/ChatGPT Image Apr 28, 2026, 10_07_05 AM.png' %}')"></div>
+  <div class="slide" style="background-image:url('{% static 'images/ChatGPT Image Apr 28, 2026, 10_09_24 AM.png' %}')"></div>
+  <div class="slide" style="background-image:url('{% static 'images/ChatGPT Image Apr 28, 2026, 10_10_49 AM.png' %}')"></div>
+</div>
+<canvas id="particles"></canvas>
+
+<div class="welcome-wrapper">
+  <img src="{% static 'images/logo.png' %}" alt="WTI Logo" class="school-crest">
+
+  <h1 class="school-name">
+    Winneba <span class="highlight">Technical</span><br>Institute
+  </h1>
+
+  <div class="system-name">Staff Management System</div>
+
+  <div class="divider"></div>
+
+  <div class="portal-cards">
+    <a href="{% url 'login' %}" class="portal-card admin">
+      <div class="portal-icon"><i class="fas fa-sign-in-alt"></i></div>
+      <h3>Login</h3>
+      <p>Staff login for facilitators and administrators. Enter your Staff ID to access your portal.</p>
+      <span class="portal-btn">Login</span>
+    </a>
+  </div>
+  <p class="teacher-login-link">HOD? <a href="{% url 'hod_login' %}">Sign in to the HOD Portal</a></p>
+</div>
+
+<div class="welcome-footer">
+  &copy; 2026 Winneba Technical Institute &mdash; Staff Management System
+</div>
+
+<!-- PWA Install Banner -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(0,30,87,0.97);backdrop-filter:blur(10px);color:#fff;padding:1rem 1.2rem;z-index:99998;align-items:center;gap:1rem;box-shadow:0 -4px 20px rgba(0,0,0,0.5);border-top:1px solid rgba(255,255,255,0.15);animation:slideInUp 0.4s ease">
+  <img src="{% static 'icons/icon-72.png' %}" alt="WTI" style="width:44px;height:44px;border-radius:12px;border:2px solid #fff;flex-shrink:0">
+  <div style="flex:1;min-width:0">
+    <div style="font-weight:700;font-size:0.9rem">📲 Install WTI Staff App</div>
+    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6)">Add to home screen — works offline too!</div>
+  </div>
+  <button onclick="installPWA()" style="background:#fff;color:var(--school-blue);border:none;border-radius:20px;padding:0.55rem 1.3rem;font-weight:700;font-size:0.82rem;white-space:nowrap;cursor:pointer;flex-shrink:0">Install</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.3rem;cursor:pointer;padding:0.2rem;flex-shrink:0;line-height:1">&times;</button>
+</div>
+<div id="onlineIndicator" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#dc3545;color:#fff;text-align:center;padding:0.6rem;font-size:0.82rem;font-weight:600;z-index:99999;align-items:center;justify-content:center;gap:0.5rem">
+  <i class="fas fa-wifi-slash"></i> You are offline
+</div>
+
+<script>
+(function(){
+  const slides=document.querySelectorAll('.slide');
+  let cur=0;
+  setInterval(()=>{slides[cur].classList.remove('active');cur=(cur+1)%slides.length;slides[cur].classList.add('active');},5000);
+})();
+(function(){
+  const canvas=document.getElementById('particles');
+  const ctx=canvas.getContext('2d');
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  class P{
+    constructor(){this.reset();}
+    reset(){this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height;this.size=Math.random()*2+0.5;this.sx=(Math.random()-0.5)*0.4;this.sy=(Math.random()-0.5)*0.4;this.op=Math.random()*0.4+0.1;this.c=Math.random()>0.5?'#ffffff':'#4d90fe';}
+    update(){this.x+=this.sx;this.y+=this.sy;if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height)this.reset();}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle=this.c;ctx.globalAlpha=this.op;ctx.fill();ctx.globalAlpha=1;}
+  }
+  const ps=[];for(let i=0;i<100;i++)ps.push(new P());
+  function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);ps.forEach(p=>{p.update();p.draw();});requestAnimationFrame(animate);}
+  animate();
+})();
+</script>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/pwa.js' %}"></script>{% endblock %}

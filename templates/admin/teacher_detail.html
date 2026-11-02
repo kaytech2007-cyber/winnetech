@@ -1,0 +1,167 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ teacher.full_name }} — WTI Admin{% endblock %}
+{% block page_title %}Facilitator Profile{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Profile Card -->
+  <div class="col-lg-4">
+    <div class="profile-card mb-3">
+      {% if teacher.profile_photo %}
+        <img src="{{ teacher.profile_photo.url }}" alt="" class="profile-avatar">
+      {% else %}
+        <div class="profile-avatar-placeholder">
+          <i class="fas fa-user"></i>
+        </div>
+      {% endif %}
+      <h5 style="font-weight:700;margin-bottom:0.2rem">{{ teacher.full_name }}</h5>
+      <p style="color:var(--gold);font-size:0.85rem;margin-bottom:1rem">{{ teacher.staff_id }}</p>
+
+      {% if teacher.is_approved %}
+        <span class="status-badge approved mb-2 d-inline-block">
+          <i class="fas fa-check-circle"></i> Approved
+        </span>
+      {% else %}
+        <span class="status-badge pending mb-2 d-inline-block">
+          <i class="fas fa-clock"></i> Pending Approval
+        </span>
+      {% endif %}
+
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-top:1rem">
+        <div class="d-flex justify-content-between mb-1">
+          <span>Course Type:</span>
+          <strong style="color:#fff">{{ teacher.get_course_type_display }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Subject:</span>
+          <strong style="color:#fff">{{ teacher.preferred_subject|title }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Experience:</span>
+          <strong style="color:#fff">{{ teacher.years_of_experience }} yrs</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Joined:</span>
+          <strong style="color:#fff">{{ teacher.date_joined|date:"M d, Y" }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="wti-card">
+      <div class="wti-card-body">
+        <div class="d-grid gap-2">
+          {% if not teacher.is_approved %}
+          <form method="post" action="{% url 'approve_teacher' teacher.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-gold text-center py-2 rounded-3 border-0 w-100">
+              <i class="fas fa-check me-2"></i> Approve Facilitator
+            </button>
+          </form>
+          {% endif %}
+          <a href="{% url 'admin_notifications' %}" class="btn-outline-gold text-center py-2 rounded-3 text-decoration-none">
+            <i class="fas fa-bell me-2"></i> Send Notification
+          </a>
+          {% if teacher.cv_document %}
+          <a href="{% url 'private_facilitator_document' teacher.pk 'cv' %}" class="btn btn-outline-secondary rounded-3" style="font-size:0.85rem">
+            <i class="fas fa-file-pdf me-2"></i> View CV
+          </a>
+          {% endif %}
+          {% if teacher.certificate_document %}
+          <a href="{% url 'private_facilitator_document' teacher.pk 'certificate' %}" class="btn btn-outline-secondary rounded-3" style="font-size:0.85rem">
+            <i class="fas fa-certificate me-2"></i> View Certificate
+          </a>
+          {% endif %}
+          <a href="{% url 'delete_teacher' teacher.id %}" class="btn btn-danger rounded-3" style="font-size:0.85rem;font-weight:600">
+            <i class="fas fa-user-slash me-2"></i> Deactivate Facilitator
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="col-lg-8">
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-info-circle"></i> Personal Details</h5>
+      </div>
+      <div class="wti-card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <p class="fw-600">{{ teacher.full_name }}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <p>{{ teacher.user.email }}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone</label>
+            <p>{{ teacher.phone }}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <p>{{ teacher.get_gender_display }}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date of Birth</label>
+            <p>{{ teacher.date_of_birth|default:"Not provided" }}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Qualification</label>
+            <p>{{ teacher.get_qualification_display }}</p>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Address</label>
+            <p>{{ teacher.address }}</p>
+          </div>
+          {% if teacher.bio %}
+          <div class="col-12">
+            <label class="form-label">Bio</label>
+            <p>{{ teacher.bio }}</p>
+          </div>
+          {% endif %}
+          {% if teacher.emergency_contact %}
+          <div class="col-md-6">
+            <label class="form-label">Emergency Contact</label>
+            <p>{{ teacher.emergency_contact }} — {{ teacher.emergency_phone }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance History -->
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-clipboard-list"></i> Attendance History (Last 30 Days)</h5>
+      </div>
+      <div class="wti-card-body p-0">
+        <div class="table-responsive">
+          <table class="wti-table">
+            <thead>
+              <tr><th>Date</th><th>Check In</th><th>Lesson Done</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for att in attendances %}
+              <tr>
+                <td>{{ att.date }}</td>
+                <td>{{ att.check_in_time|default:"—" }}</td>
+                <td>{{ att.lesson_done_time|default:"—" }}</td>
+                <td><span class="status-badge {{ att.status }}">{{ att.get_status_display }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">No attendance records</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

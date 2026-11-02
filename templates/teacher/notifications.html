@@ -1,0 +1,14 @@
+{% extends 'teacher/base_teacher.html' %}
+{% block title %}My Notifications — Facilitator Portal{% endblock %}
+{% block page_title %}My Notifications{% endblock %}
+{% block content %}
+<div class="page-header"><h2>My Notifications</h2></div>
+<div class="list-group">
+{% for notification in notifications %}
+  <article class="list-group-item"><h3 class="h6">{{ notification.title }}</h3><p class="mb-1">{{ notification.message }}</p><small class="text-muted">{{ notification.created_at }}</small>
+    {% if not notification.is_read %}<form method="post" action="{% url 'mark_notification_read' notification.pk %}" class="mt-2">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" type="submit">Mark as read</button></form>{% endif %}
+  </article>
+{% empty %}<div class="list-group-item text-center text-muted">No notifications are available.</div>{% endfor %}
+</div>
+{% if notifications.paginator.num_pages > 1 %}<nav class="mt-3">{% if notifications.has_previous %}<a href="?page={{ notifications.previous_page_number }}">Previous</a>{% endif %} Page {{ notifications.number }} of {{ notifications.paginator.num_pages }} {% if notifications.has_next %}<a href="?page={{ notifications.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+{% endblock %}

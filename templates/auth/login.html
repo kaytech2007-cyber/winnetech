@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login — WTI Staff System{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --school-blue: #003087;
+  --school-blue-dark: #001f5c;
+  --school-blue-mid: #0047b3;
+  --school-white: #ffffff;
+  --school-light: #e8f0fe;
+  --gold: #f5a623;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, var(--school-blue-dark) 0%, var(--school-blue-mid) 50%, var(--school-blue-dark) 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated background particles */
+.bg-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-particles span {
+  position: absolute;
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  animation: float linear infinite;
+}
+@keyframes float {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+/* Login card */
+.login-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease both;
+  flex-shrink: 0;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 24px;
+  padding: 2.5rem 2.2rem;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Logo area */
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+.login-logo img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 4px solid var(--school-blue);
+  object-fit: contain;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 8px 30px rgba(0, 48, 135, 0.3);
+  margin-bottom: 1rem;
+}
+.login-logo h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--school-blue);
+  margin-bottom: 0.2rem;
+  line-height: 1.2;
+}
+.login-logo p {
+  font-size: 0.82rem;
+  color: #666;
+  font-weight: 500;
+}
+.login-logo .badge-system {
+  display: inline-block;
+  background: var(--school-light);
+  color: var(--school-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.8rem;
+  border-radius: 20px;
+  margin-top: 0.4rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Divider */
+.login-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--school-blue), transparent);
+  margin: 0 0 1.8rem;
+  opacity: 0.15;
+}
+
+/* Form */
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--school-blue);
+  margin-bottom: 0.4rem;
+  display: block;
+}
+.form-control {
+  border: 2px solid #e0e8f5;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #f8faff;
+  width: 100%;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--school-blue-mid);
+  box-shadow: 0 0 0 4px rgba(0, 71, 179, 0.1);
+  background: #fff;
+}
+.form-control::placeholder { color: #aab; font-weight: 400; }
+.input-group {
+  position: relative;
+}
+.input-group .form-control {
+  padding-right: 3rem;
+}
+.toggle-pass {
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.2rem;
+  font-size: 0.9rem;
+  z-index: 2;
+}
+.toggle-pass:hover { color: var(--school-blue); }
+
+/* Error alert */
+.login-error {
+  background: #fff5f5;
+  border: 1.5px solid #f5c6cb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.83rem;
+  color: #721c24;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Submit button */
+.btn-login {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, var(--school-blue-mid), var(--school-blue));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(0, 48, 135, 0.35);
+  margin-top: 0.5rem;
+}
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 48, 135, 0.45);
+  background: linear-gradient(135deg, var(--school-blue), var(--school-blue-dark));
+}
+.btn-login:active { transform: translateY(0); }
+
+/* Back link */
+.back-link {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.back-link a {
+  color: #888;
+  font-size: 0.82rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.back-link a:hover { color: var(--school-blue); }
+
+/* Footer */
+.login-footer {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-top: 1.2rem;
+  width: 100%;
+  max-width: 440px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 2rem 1.4rem; border-radius: 20px; }
+  .login-logo img { width: 75px; height: 75px; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Animated background -->
+<div class="bg-particles" id="bgParticles"></div>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <!-- Logo & School Name -->
+    <div class="login-logo">
+      <img src="{% static 'images/logo.png' %}" alt="WTI Logo">
+      <h2>Winneba Technical<br>Institute</h2>
+      <p>Staff Management System</p>
+      <span class="badge-system">Staff Portal</span>
+    </div>
+
+    <div class="login-divider"></div>
+
+    <!-- Error Message -->
+    {% if error %}
+    <div class="login-error">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Login Form -->
+    <form method="post" novalidate autocomplete="off">
+      {% csrf_token %}
+
+      <div style="margin-bottom:1.2rem">
+        <label class="form-label">
+          <i class="fas fa-id-badge" style="margin-right:0.4rem"></i>Staff ID
+        </label>
+        <input
+          type="text"
+          name="staff_id"
+          class="form-control"
+          placeholder="e.g. WTI0001 or AdminID"
+          required
+          autofocus
+          autocomplete="off"
+          style="text-transform:uppercase;letter-spacing:1px"
+        >
+        <small style="font-size:0.74rem;color:#999;margin-top:0.3rem;display:block">
+          Enter your Staff ID (facilitators: assigned staff ID, admins: your admin ID)
+        </small>
+      </div>
+
+      <div style="margin-bottom:1.5rem">
+        <label class="form-label">
+          <i class="fas fa-lock" style="margin-right:0.4rem"></i>Password
+        </label>
+        <div class="input-group">
+          <input
+            type="password"
+            name="password"
+            id="loginPass"
+            class="form-control"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-pass" onclick="togglePassword()" aria-label="Toggle password visibility">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login">
+        <i class="fas fa-sign-in-alt" style="margin-right:0.5rem"></i>Login
+      </button>
+    </form>
+
+    <div class="back-link">
+      <a href="{% url 'welcome' %}">
+        <i class="fas fa-arrow-left" style="margin-right:0.3rem"></i>Back to Welcome Page
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="login-footer">
+  &copy; 2026 Winneba Technical Institute &mdash; All rights reserved
+</div>
+
+<script>
+// Toggle password visibility
+function togglePassword() {
+  const input = document.getElementById('loginPass');
+  const icon = document.getElementById('eyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+// Generate background particles
+(function () {
+  const container = document.getElementById('bgParticles');
+  if (!container) return;
+  for (let i = 0; i < 40; i++) {
+    const span = document.createElement('span');
+    span.style.left = Math.random() * 100 + '%';
+    span.style.width = span.style.height = (Math.random() * 4 + 2) + 'px';
+    span.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    span.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(span);
+  }
+})();
+</script>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/pwa.js' %}"></script>{% endblock %}

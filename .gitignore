@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+generate_icons.py
+write_register_template.py
+setup_data.py
+wr.py
+views_review.txt
+_write2_views_part1.py
+_write3_views_part2.py
+write_teacher_forms.py
+
+# All SQLite databases and backups
+*.sqlite3
+*.sqlite3-*
+*.db
+
+# Secrets and private keys
+*.pem
+*.key
+.env.*
+!.env.example
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+db_*.sqlite3
+backups/
+*.pyc
+requirements.broken*
+requirements.utf8-backup.txt
+.env.backup
+project_audit.txt
+_archive/

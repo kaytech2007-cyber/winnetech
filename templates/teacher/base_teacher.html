@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WTI Facilitator">
+  <meta name="theme-color" content="#f5a623">
+  <meta name="description" content="WTI Facilitator Portal — Staff Management">
+
+  <title>{% block title %}Facilitator Portal — WTI{% endblock %}</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+  <link rel="icon" type="image/png" href="{% static 'icons/icon-96.png' %}">
+
+  <!-- Styles -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-wrapper">
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'images/logo.png' %}" alt="WTI">
+      <div class="sidebar-brand-text">
+        <h6>WTI Facilitator</h6>
+        <small>Staff Portal</small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">My Portal</div>
+      <a href="{% url 'facilitator_dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+        <i class="fas fa-home"></i> Dashboard
+      </a>
+      <a href="{% url 'view_timetable' %}" class="sidebar-link {% block nav_timetable %}{% endblock %}">
+        <i class="fas fa-calendar-alt"></i> Timetable
+      </a>
+      <a href="{% url 'facilitator_attendance' %}" class="sidebar-link"><i class="fas fa-clipboard-check"></i> Attendance</a>
+      <a href="{% url 'facilitator_notifications' %}" class="sidebar-link"><i class="fas fa-bell"></i> Notifications</a>
+      <a href="{% url 'qr_scanner' %}" class="sidebar-link {% block nav_scanner %}{% endblock %}">
+        <i class="fas fa-camera"></i> QR Scanner
+      </a>
+      <div class="nav-section-title">My Account</div>
+      <a href="{% url 'teacher_update_profile' %}" class="sidebar-link {% block nav_profile %}{% endblock %}">
+        <i class="fas fa-user-edit"></i> Update Profile
+      </a>
+      <a href="{% url 'teacher_change_password' %}" class="sidebar-link {% block nav_password %}{% endblock %}">
+        <i class="fas fa-key"></i> Change Password
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          {% if profile.profile_photo %}
+            <img src="{{ profile.profile_photo.url }}" alt="">
+          {% else %}
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+          {% endif %}
+        </div>
+        <div class="sidebar-user-info">
+          <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
+          <small>{{ profile.staff_id }}</small>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sidebar-link border-0 bg-transparent w-100 text-start" style="border-radius:10px;color:rgba(255,100,100,0.8)"><i class="fas fa-sign-out-alt"></i> Logout</button></form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="header-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="header-actions">
+        <button class="header-btn" id="notifBtn" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot" {% if unread_notifications %}style="display:block"{% else %}style="display:none"{% endif %}></span>
+        </button>
+        <a href="{% url 'qr_scanner' %}" class="header-btn" title="QR Scanner">
+          <i class="fas fa-qrcode"></i>
+        </a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="header-btn border-0 bg-transparent" title="Logout" style="color:#dc3545"><i class="fas fa-sign-out-alt"></i></button></form>
+      </div>
+    </header>
+
+    <!-- Notification Panel -->
+    <div class="notif-panel" id="notifPanel">
+      <div class="notif-panel-header">
+        <span><i class="fas fa-bell me-2" style="color:var(--gold)"></i> Notifications</span>
+        <button class="btn btn-sm btn-link text-muted p-0" onclick="document.getElementById('notifPanel').classList.remove('show')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="notif-list" id="notifList">
+        {% for notif in all_notifications %}
+        <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+          <div class="notif-icon {{ notif.notification_type }}">
+            <i class="fas fa-bell"></i>
+          </div>
+          <div class="notif-content">
+            <h6>{{ notif.title }}</h6>
+            <p>{{ notif.message|truncatechars:60 }}</p>
+            <small>{{ notif.created_at|timesince }} ago</small>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-3 text-center text-muted" style="font-size:0.85rem">No notifications</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="px-3 pt-3">
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} auto-dismiss alert-dismissible fade show" role="alert">
+          {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<!-- Reminder Toast -->
+<div class="reminder-toast" id="reminderToast" role="alert" aria-live="assertive">
+  <h6><i class="fas fa-bell"></i> <span class="reminder-title">Class Reminder</span></h6>
+  <p class="reminder-body"></p>
+  <button class="btn btn-sm btn-outline-light mt-2" onclick="document.getElementById('reminderToast').classList.remove('show')">
+    Dismiss
+  </button>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <a href="{% url 'facilitator_dashboard' %}" class="{% block mob_dashboard %}{% endblock %}" aria-label="Dashboard">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </a>
+  <a href="{% url 'view_timetable' %}" class="{% block mob_timetable %}{% endblock %}" aria-label="Timetable">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Timetable</span>
+  </a>
+  <a href="{% url 'qr_scanner' %}" class="{% block mob_scanner %}{% endblock %}" aria-label="QR Scanner" style="position:relative">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 15px rgba(245,166,35,0.5)">
+      <i class="fas fa-qrcode" style="font-size:1.3rem;color:#fff"></i>
+    </div>
+    <span>Scan QR</span>
+  </a>
+  <a href="{% url 'view_timetable' %}" aria-label="Schedule">
+    <i class="fas fa-calendar-check"></i>
+    <span>Schedule</span>
+  </a>
+  <form method="post" action="{% url 'logout' %}" class="d-flex align-items-center">{% csrf_token %}<button type="submit" class="border-0 bg-transparent" aria-label="Logout" style="color:#dc3545"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></form>
+</nav>
+
+<!-- PWA Install Banner -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#0a1628,#1a2f5a);color:#fff;padding:1rem 1.2rem;z-index:99998;align-items:center;gap:1rem;box-shadow:0 -4px 20px rgba(0,0,0,0.3);animation:slideInUp 0.4s ease">
+  <img src="{% static 'icons/icon-72.png' %}" alt="WTI" style="width:40px;height:40px;border-radius:10px;flex-shrink:0">
+  <div style="flex:1;min-width:0">
+    <div style="font-weight:700;font-size:0.88rem">Install WTI Staff App</div>
+    <div style="font-size:0.75rem;color:rgba(255,255,255,0.7)">Quick access from your home screen</div>
+  </div>
+  <button onclick="installPWA()" style="background:linear-gradient(135deg,#f5a623,#e8920a);color:#fff;border:none;border-radius:20px;padding:0.5rem 1.2rem;font-weight:700;font-size:0.82rem;white-space:nowrap;cursor:pointer">
+    Install
+  </button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0.2rem;flex-shrink:0" aria-label="Dismiss">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
+<!-- Offline Indicator -->
+<div id="onlineIndicator" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#dc3545;color:#fff;text-align:center;padding:0.5rem;font-size:0.82rem;font-weight:600;z-index:99999;align-items:center;justify-content:center;gap:0.5rem">
+  <i class="fas fa-wifi-slash"></i> You are offline
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  window.NOTIF_API_URL = "{% url 'notifications_api' %}";
+  window.REMINDER_API_URL = "{% url 'schedule_reminders_api' %}";
+  window.MARK_READ_BASE_URL = "{% url 'mark_notification_read' 0 %}";
+  window.CURRENT_USER_ID = {{ request.user.id }};
+</script>
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/pwa.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

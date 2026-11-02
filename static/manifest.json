@@ -1,0 +1,95 @@
+{
+  "name": "Winneba Technical Institute",
+  "short_name": "WTI Staff",
+  "description": "Winneba Technical Institute Staff Management System — Transforming and Empowering the Youth Through Vocational Skills",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a1628",
+  "theme_color": "#f5a623",
+  "lang": "en",
+  "scope": "/",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/images/ChatGPT Image Apr 28, 2026, 10_01_09 AM.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "WTI Staff Management System"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin Portal",
+      "short_name": "Admin",
+      "description": "Open Admin Portal",
+      "url": "/admin-portal/",
+      "icons": [{ "src": "/static/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "QR Scanner",
+      "short_name": "Scanner",
+      "description": "Scan Attendance QR Code",
+      "url": "/teacher/qr-scanner/",
+      "icons": [{ "src": "/static/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Facilitator Login",
+      "short_name": "Login",
+      "description": "Facilitator Login",
+      "url": "/login/",
+      "icons": [{ "src": "/static/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

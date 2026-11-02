@@ -1,0 +1,66 @@
+{% extends base_template %}
+{% block title %}Facilitator Record — WTI{% endblock %}
+{% block page_title %}Facilitator Record{% endblock %}
+{% block page_heading %}Facilitator Record{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+{% block nav_facilitators %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="h4 mb-0">{{ teacher.full_name }}</h2>
+    {% if role == 'hod' %}
+      <a class="btn btn-primary" href="{% url 'hod_facilitator_manage' teacher.pk %}">Manage Facilitator</a>
+    {% endif %}
+  </div>
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Account and Facilitator Details</div>
+    <dl class="row card-body mb-0">
+      <dt class="col-sm-4">Staff ID</dt><dd class="col-sm-8">{{ teacher.staff_id|default:'—' }}</dd>
+      <dt class="col-sm-4">Full name</dt><dd class="col-sm-8">{{ teacher.full_name }}</dd>
+      <dt class="col-sm-4">Username</dt><dd class="col-sm-8">{{ teacher.user.username }}</dd>
+      <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ teacher.user.email|default:'—' }}</dd>
+      <dt class="col-sm-4">Programme</dt><dd class="col-sm-8">{{ programme.name|default:'Unassigned' }}</dd>
+      <dt class="col-sm-4">Employment type</dt><dd class="col-sm-8">{% if facilitator %}{{ facilitator.get_employment_type_display }}{% else %}Not recorded (legacy profile){% endif %}</dd>
+      <dt class="col-sm-4">Account status</dt><dd class="col-sm-8">{% if teacher.user.is_active %}Active{% else %}Inactive{% endif %}</dd>
+      <dt class="col-sm-4">Approval status</dt><dd class="col-sm-8">{% if teacher.is_approved %}Approved{% else %}Pending{% endif %}</dd>
+      <dt class="col-sm-4">Profile status</dt><dd class="col-sm-8">{% if facilitator %}{% if facilitator.is_active %}Active{% else %}Inactive{% endif %}{% else %}Legacy record; Facilitator profile not yet created{% endif %}</dd>
+      <dt class="col-sm-4">Profile created</dt><dd class="col-sm-8">{{ teacher.date_joined|date:'Y-m-d' }}</dd>
+    </dl>
+  </div>
+
+  {% if facilitator and facilitator.employment_type == 'INTERNSHIP' %}
+  <div class="card mb-3">
+    <div class="card-header fw-bold">Internship and Permanent Facilitator Supervision</div>
+    <dl class="row card-body mb-0">
+      <dt class="col-sm-4">Permanent Facilitator supervisor</dt><dd class="col-sm-8">{% if facilitator.supervisor %}{{ facilitator.supervisor.teacher.full_name }}{% else %}Not assigned{% endif %}</dd>
+      <dt class="col-sm-4">Internship start date</dt><dd class="col-sm-8">{{ facilitator.internship_start_date|default:'—' }}</dd>
+      <dt class="col-sm-4">Internship end date</dt><dd class="col-sm-8">{{ facilitator.internship_end_date|default:'—' }}</dd>
+      <dt class="col-sm-4">Extensions</dt>
+      <dd class="col-sm-8">
+        {% for extension in facilitator.extensions.all %}
+          <div>{{ extension.old_end_date }} to {{ extension.new_end_date }}{% if extension.reason %} — {{ extension.reason }}{% endif %}</div>
+        {% empty %}None recorded{% endfor %}
+      </dd>
+    </dl>
+  </div>
+  <div class="card">
+    <div class="card-header fw-bold">Permanent Facilitator Supervision History</div>
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Permanent Facilitator</th><th>From</th><th>To</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for assignment in facilitator.supervision_history.all %}
+          <tr><td>{{ assignment.supervisor.teacher.full_name }}</td><td>{{ assignment.start_date }}</td><td>{{ assignment.end_date|default:'Current' }}</td><td>{% if assignment.is_active %}Active{% else %}Ended{% endif %}</td></tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">No Permanent Facilitator supervision history is recorded.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <a class="btn btn-outline-secondary mt-3" href="{% if role == 'hod' %}{% url 'hod_facilitators' %}{% elif role == 'admin' %}{% url 'admin_facilitator_records' %}{% else %}{% url 'superadmin_facilitator_records' %}{% endif %}">Back to Facilitator Records</a>
+</div>
+{% endblock %}

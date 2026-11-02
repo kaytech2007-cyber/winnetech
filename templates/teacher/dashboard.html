@@ -1,0 +1,268 @@
+{% extends 'teacher/base_teacher.html' %}
+{% load static %}
+
+{% block title %}My Dashboard — WTI{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block mob_dashboard %}active{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div style="background:linear-gradient(135deg,var(--dark-blue),var(--mid-blue));border-radius:16px;padding:1.5rem 2rem;margin-bottom:1.5rem;color:#fff;position:relative;overflow:hidden">
+  <div style="position:absolute;width:200px;height:200px;background:rgba(245,166,35,0.1);border-radius:50%;top:-80px;right:-60px"></div>
+  <div class="d-flex align-items-center gap-3">
+    <div class="sidebar-user-avatar" style="width:60px;height:60px;font-size:1.3rem;border:3px solid var(--gold)">
+      {% if profile.profile_photo %}
+        <img src="{{ profile.profile_photo.url }}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+      {% else %}
+        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+      {% endif %}
+    </div>
+    <div>
+      <h5 style="margin:0;font-weight:800">Good day, {{ request.user.first_name }}!</h5>
+      <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.85rem">
+        {{ profile.staff_id }} · {{ profile.get_course_type_display }} · {{ today }}
+      </p>
+    </div>
+    <div class="ms-auto text-end d-none d-md-block">
+      <div style="font-size:1.8rem;font-weight:800;color:var(--gold)" id="liveClock"></div>
+      <small style="color:rgba(255,255,255,0.6)">School: 7:00 AM – 3:30 PM</small>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon {% if today_att and today_att.school_status == 'present' %}green{% elif today_att and today_att.school_status == 'absent' %}red{% else %}gold{% endif %}">
+        <i class="fas fa-{% if today_att and today_att.school_status == 'present' %}check-circle{% elif today_att and today_att.school_status == 'absent' %}times-circle{% else %}circle-question{% endif %}"></i>
+      </div>
+      <div class="stat-info">
+        <h3 style="font-size:1.1rem">{% if today_att %}{{ today_att.get_school_status_display }}{% else %}Unverified{% endif %}</h3>
+        <p>School Status</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon {% if today_att and today_att.lesson_status == 'done' %}blue{% else %}gold{% endif %}">
+        <i class="fas fa-book"></i>
+      </div>
+      <div class="stat-info">
+        <h3 style="font-size:1.1rem">{% if today_att and today_att.lesson_status == 'done' %}Done{% else %}Pending{% endif %}</h3>
+        <p>Lesson Status</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+      <div class="stat-info">
+        <h3>{{ today_schedule.count }}</h3>
+        <p>Classes Today</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="fas fa-bell"></i></div>
+      <div class="stat-info">
+        <h3>{{ unread_notifications }}</h3>
+        <p>Notifications</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column -->
+  <div class="col-lg-8">
+    {% if class_confirmation_requests %}
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-clipboard-check"></i> Class confirmation requests</h5>
+      </div>
+      <div class="wti-card-body">
+        {% for confirmation in class_confirmation_requests %}
+        <div class="border rounded-3 p-3 mb-3">
+          <div class="d-flex flex-wrap justify-content-between gap-2">
+            <strong>{{ confirmation.timetable_entry.subject }}</strong>
+            <span>{{ confirmation.scheduled_date }} · {{ confirmation.start_time|time:"H:i" }}–{{ confirmation.end_time|time:"H:i" }}</span>
+          </div>
+          <small class="text-muted">
+            {{ confirmation.programme.name }}. This is a request, not a confirmed assignment.
+          </small>
+          <div class="d-flex gap-2 mt-3">
+            <form method="post" action="{% url 'facilitator_class_confirmation_response' confirmation.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="accept">
+              <button type="submit" class="btn btn-success btn-sm">Accept</button>
+            </form>
+            <form method="post" action="{% url 'facilitator_class_confirmation_response' confirmation.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="decline">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Today's Schedule -->
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-calendar-day"></i> Today's Classes</h5>
+        <a href="{% url 'view_timetable' %}" class="btn-outline-gold" style="font-size:0.8rem">Full Timetable</a>
+      </div>
+      <div class="wti-card-body p-0">
+        {% if today_schedule %}
+        <div class="table-responsive">
+          <table class="wti-table">
+            <thead>
+              <tr><th>Time</th><th>Subject</th><th>Type</th></tr>
+            </thead>
+            <tbody>
+              {% for entry in today_schedule %}
+              <tr>
+                <td style="font-size:0.82rem;color:#888">{{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}</td>
+                <td><strong>{{ entry.subject }}</strong></td>
+                <td><span class="status-badge {{ entry.course_type }}">{{ entry.get_course_type_display }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="fas fa-calendar-times" style="font-size:2rem;color:#ddd"></i>
+          <p class="mt-2" style="font-size:0.85rem">No classes scheduled for today</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Upcoming Schedules -->
+    {% if upcoming_schedules %}
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-calendar-plus"></i> Upcoming Scheduled Classes</h5>
+      </div>
+      <div class="wti-card-body p-0">
+        <div class="table-responsive">
+          <table class="wti-table">
+            <thead>
+              <tr><th>Date</th><th>Subject</th><th>Time</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for s in upcoming_schedules %}
+              <tr>
+                <td style="font-size:0.85rem">{{ s.scheduled_date }}</td>
+                <td><strong style="font-size:0.88rem">{{ s.timetable_entry.subject }}</strong></td>
+                <td style="font-size:0.82rem;color:#888">{{ s.timetable_entry.start_time|time:"H:i" }} – {{ s.timetable_entry.end_time|time:"H:i" }}</td>
+                <td>
+                  {% if s.is_completed %}
+                    <span class="status-badge approved">Done</span>
+                  {% else %}
+                    <span class="status-badge pending">Upcoming</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- QR Attendance -->
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-qrcode"></i> QR Attendance</h5>
+      </div>
+      <div class="wti-card-body text-center">
+        {% if today_att %}
+          <div class="row g-2">
+            <div class="col-6">
+              <div style="background:#f8f9fa;border-radius:12px;padding:1rem;border:2px solid {% if today_att.school_status == 'present' %}#28a745{% elif today_att.school_status == 'absent' %}#dc3545{% else %}#e8ecf0{% endif %}">
+                <i class="fas fa-school" style="font-size:1.8rem;color:{% if today_att.school_status == 'present' %}#28a745{% elif today_att.school_status == 'absent' %}#dc3545{% else %}#856404{% endif %}"></i>
+                <div style="font-size:.82rem;font-weight:700;margin-top:.4rem;color:{% if today_att.school_status == 'present' %}#28a745{% elif today_att.school_status == 'absent' %}#dc3545{% else %}#856404{% endif %}">
+                  {{ today_att.get_school_status_display }}
+                </div>
+                <div style="font-size:.72rem;color:#888">School: {{ today_att.check_in_time|default:"Not scanned" }}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="background:#f8f9fa;border-radius:12px;padding:1rem;border:2px solid {% if today_att.lesson_status == 'done' %}#003087{% else %}#e8ecf0{% endif %}">
+                <i class="fas fa-book" style="font-size:1.8rem;color:{% if today_att.lesson_status == 'done' %}#003087{% else %}#ddd{% endif %}"></i>
+                <div style="font-size:.82rem;font-weight:700;margin-top:.4rem;color:{% if today_att.lesson_status == 'done' %}#003087{% else %}#888{% endif %}">
+                  {% if today_att.lesson_status == 'done' %}✓ Done{% else %}Pending{% endif %}
+                </div>
+                <div style="font-size:.72rem;color:#888">Lesson: {{ today_att.lesson_done_time|default:"Not scanned" }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+            {% if today_att.school_status != 'present' %}
+            <a href="{% url 'qr_scanner' %}" class="btn-gold px-3 py-2 rounded-3" style="font-size:.82rem"><i class="fas fa-camera me-1"></i> Scan School QR</a>
+            {% endif %}
+            {% if today_att.lesson_status != 'done' %}
+            <a href="{% url 'qr_scanner' %}" class="btn-outline-gold px-3 py-2 rounded-3" style="font-size:.82rem"><i class="fas fa-book me-1"></i> Scan Lesson QR</a>
+            {% endif %}
+          </div>
+        {% else %}
+        <div class="py-3">
+          <i class="fas fa-qrcode" style="font-size:3rem;color:#ddd"></i>
+          <h6 class="mt-2 text-muted">Not checked in yet</h6>
+          <p class="text-muted" style="font-size:.83rem">Scan the QR codes on the classroom wall</p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap mt-2">
+            <a href="{% url 'qr_scanner' %}" class="btn-gold px-3 py-2 rounded-3" style="font-size:.82rem"><i class="fas fa-school me-1"></i> School QR</a>
+            <a href="{% url 'qr_scanner' %}" class="btn-outline-gold px-3 py-2 rounded-3" style="font-size:.82rem"><i class="fas fa-book me-1"></i> Lesson QR</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="col-lg-4">
+    <!-- Notifications -->
+    <div class="wti-card mb-3">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-bell"></i> Notifications</h5>
+        {% if unread_notifications %}<span class="badge bg-danger">{{ unread_notifications }}</span>{% endif %}
+      </div>
+      <div class="wti-card-body p-0" style="max-height:350px;overflow-y:auto">
+        {% for notif in all_notifications %}
+        <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+          <div class="notif-icon {{ notif.notification_type }}"><i class="fas fa-bell"></i></div>
+          <div class="notif-content">
+            <h6>{{ notif.title }}</h6>
+            <p>{{ notif.message|truncatechars:70 }}</p>
+            <small>{{ notif.created_at|timesince }} ago</small>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-3 text-center text-muted" style="font-size:.85rem">No notifications</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Live clock
+function updateClock() {
+  const el = document.getElementById('liveClock');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toLocaleTimeString('en-GH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+{% endblock %}

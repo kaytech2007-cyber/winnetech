@@ -1,0 +1,76 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Notifications — WTI Admin{% endblock %}
+{% block page_title %}Send Notifications{% endblock %}
+{% block nav_notif %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Send Form -->
+  <div class="col-lg-5">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-paper-plane"></i> Send Notification</h5>
+      </div>
+      <div class="wti-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Recipient *</label>
+            {{ form.recipient }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Title *</label>
+            {{ form.title }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message *</label>
+            {{ form.message }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            {{ form.notification_type }}
+          </div>
+          <button type="submit" class="btn-gold w-100 py-2 rounded-3">
+            <i class="fas fa-bell me-2"></i> Send Notification
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sent Notifications -->
+  <div class="col-lg-7">
+    <div class="wti-card">
+      <div class="wti-card-header">
+        <h5><i class="fas fa-history"></i> Sent Notifications</h5>
+      </div>
+      <div class="wti-card-body p-0">
+        {% for notif in sent_notifications %}
+        <div class="notif-item">
+          <div class="notif-icon {{ notif.notification_type }}">
+            <i class="fas fa-bell"></i>
+          </div>
+          <div class="notif-content flex-grow-1">
+            <h6>{{ notif.title }}</h6>
+            <p>{{ notif.message|truncatechars:80 }}</p>
+            <small>To: <strong>{{ notif.recipient.get_full_name }}</strong> · {{ notif.created_at|timesince }} ago</small>
+          </div>
+          {% if notif.is_read %}
+            <span class="badge bg-success" style="font-size:0.65rem;align-self:center">Read</span>
+          {% else %}
+            <span class="badge bg-warning text-dark" style="font-size:0.65rem;align-self:center">Unread</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="p-4 text-center text-muted">
+          <i class="fas fa-bell-slash" style="font-size:2rem;color:#ddd"></i>
+          <p class="mt-2" style="font-size:0.85rem">No notifications sent yet</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
