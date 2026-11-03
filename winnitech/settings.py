@@ -16,17 +16,12 @@ _logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Load .env file for local development
 try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / ".env")
 except ImportError:
     pass
 
-
-# ============================================================
-# SECURITY
-# ============================================================
 
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
@@ -51,40 +46,22 @@ ALLOWED_HOSTS = [
 ]
 
 
-# ============================================================
-# APPLICATIONS
-# ============================================================
-
 INSTALLED_APPS = [
     "daphne",
-
-    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    # Channels
     "channels",
-
-    # Forms
     "crispy_forms",
     "crispy_bootstrap5",
     "widget_tweaks",
-
-    # Project apps
     "core",
-
-    # Gmail OAuth backend
     "gmail_oauth_backend",
 ]
 
-
-# ============================================================
-# MIDDLEWARE
-# ============================================================
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -99,25 +76,15 @@ MIDDLEWARE = [
 ]
 
 
-# ============================================================
-# URL / WSGI / ASGI
-# ============================================================
-
 ROOT_URLCONF = "winnitech.urls"
 WSGI_APPLICATION = "winnitech.wsgi.application"
 ASGI_APPLICATION = "winnitech.asgi.application"
 
 
-# ============================================================
-# TEMPLATES
-# ============================================================
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates",
-        ],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -134,20 +101,12 @@ TEMPLATES = [
 ]
 
 
-# ============================================================
-# CHANNELS
-# ============================================================
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
-
-# ============================================================
-# DATABASE
-# ============================================================
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
@@ -168,24 +127,11 @@ else:
     }
 
 
-# ============================================================
-# PASSWORD VALIDATION
-# ============================================================
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 10},
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 PASSWORD_HASHERS = [
@@ -200,10 +146,10 @@ PASSWORD_HASHERS = [
 # ============================================================
 # EMAIL — Gmail API via django-gmail-oauth-backend
 # ============================================================
-# Secrets are loaded from environment only. Never hardcode them.
 
 GMAIL_OAUTH_CLIENT_ID = os.environ.get("GMAIL_OAUTH_CLIENT_ID", "")
 GMAIL_OAUTH_CLIENT_SECRET = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET", "")
+GMAIL_REFRESH_TOKEN = os.environ.get("GMAIL_REFRESH_TOKEN", "")
 
 EMAIL_BACKEND = "gmail_oauth_backend.GmailOauthBackend"
 
@@ -228,26 +174,14 @@ if STAFF_ONBOARDING_TIMEOUT <= 0:
 PASSWORD_RESET_TIMEOUT = STAFF_ONBOARDING_TIMEOUT
 
 
-# ============================================================
-# INTERNATIONALIZATION
-# ============================================================
-
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Accra"
 USE_I18N = True
 USE_TZ = True
 
 
-# ============================================================
-# STATIC FILES
-# ============================================================
-
 STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
@@ -260,83 +194,38 @@ STORAGES = {
 }
 
 
-# ============================================================
-# MEDIA FILES
-# ============================================================
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-# ============================================================
-# CLOUDINARY
-# ============================================================
-
 CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
 
-if CLOUDINARY_URL:
-    if not CLOUDINARY_URL.startswith("cloudinary://"):
-        _logger.warning(
-            "CLOUDINARY_URL is set but does not start with "
-            "'cloudinary://'. Cloudinary storage will not be enabled."
-        )
-    else:
-        try:
-            import cloudinary
+if CLOUDINARY_URL and CLOUDINARY_URL.startswith("cloudinary://"):
+    try:
+        import cloudinary
+        cloudinary.config(cloudinary_url=CLOUDINARY_URL)
+        INSTALLED_APPS += ["cloudinary_storage", "cloudinary"]
+        STORAGES["default"] = {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        }
+    except Exception as exc:
+        _logger.exception("Cloudinary failed to initialize: %s", exc)
 
-            cloudinary.config(cloudinary_url=CLOUDINARY_URL)
-
-            INSTALLED_APPS += [
-                "cloudinary_storage",
-                "cloudinary",
-            ]
-
-            STORAGES["default"] = {
-                "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-            }
-
-        except Exception as exc:
-            _logger.exception(
-                "Cloudinary failed to initialize: %s",
-                exc,
-            )
-
-
-# ============================================================
-# DEFAULT PRIMARY KEY
-# ============================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-
-# ============================================================
-# CRISPY FORMS
-# ============================================================
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-
-# ============================================================
-# AUTHENTICATION
-# ============================================================
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 
-# ============================================================
-# SCHOOL SETTINGS
-# ============================================================
-
 SCHOOL_START_TIME = "07:00"
 SCHOOL_END_TIME = "15:30"
 
-
-# ============================================================
-# CSRF
-# ============================================================
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
@@ -356,14 +245,7 @@ CSRF_TRUSTED_ORIGINS += [
 ]
 
 
-# ============================================================
-# RENDER / HTTPS
-# ============================================================
-
-SECURE_PROXY_SSL_HEADER = (
-    "HTTP_X_FORWARDED_PROTO",
-    "https",
-)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 if not DEBUG:
@@ -382,10 +264,6 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = False
 
 
-# ============================================================
-# LOGGING
-# ============================================================
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -396,10 +274,7 @@ LOGGING = {
         },
     },
     "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
     },
     "root": {
         "handlers": ["console"],
@@ -411,16 +286,9 @@ LOGGING = {
             "level": "INFO" if DEBUG else "WARNING",
             "propagate": False,
         },
-        "core": {
-            "handlers": ["console"],
-            "level": "INFO",
-            "propagate": False,
-        },
+        "core": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
 
 
-# ============================================================
-# SILENCED CHECKS
-# ============================================================
 SILENCED_SYSTEM_CHECKS = ["security.W021"]
