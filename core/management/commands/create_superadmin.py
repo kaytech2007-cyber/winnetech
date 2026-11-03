@@ -5,7 +5,7 @@ from core.models import AdminProfile
 
 
 class Command(BaseCommand):
-    help = "Create a Winnetech superadmin (with AdminProfile) if none exists."
+    help = "Create or promote a Winnetech superadmin with AdminProfile."
 
     def handle(self, *args, **options):
         username = os.environ.get("SUPERADMIN_USERNAME", "superadmin")
@@ -20,31 +20,46 @@ class Command(BaseCommand):
             )
             return
 
-        # Check if a superadmin already exists
-        existing = AdminProfile.objects.filter(role="superadmin").first()
-        if existing:
+        # 1. Check if a superadmin already exists
+        existing_sa = AdminProfile.objects.filter(role="superadmin").first()
+        if existing_sa:
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Superadmin already exists: {existing.user.username} — skipping."
+                    f"Superadmin already exists: {existing_sa.user.username} — skipping."
                 )
             )
             return
 
-        # Create user
-        if User.objects.filter(username=username).exists():
-            user = User.objects.get(username=username)
+        # 2. Find user by username OR email
+        user = User.objects.filter(username=username).first()
+        if not user:
+            user = User.objects.filter(email__iexact=email).first()
+
+        # 3. If user exists, promote them. If not, create them.
+        if user:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"User already exists ({user.username} / {user.email}) — promoting."
+                )
+            )
+            user.set_password(password)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
         else:
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password,
             )
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            self.stdout.write(
+                self.style.SUCCESS(f"User created: {username}")
+            )
 
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
-
-        # Create AdminProfile with superadmin role
+        # 4. Create AdminProfile with superadmin role
         AdminProfile.objects.create(
             user=user,
             role="superadmin",
@@ -52,6 +67,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Superadmin created: {username} ({email})"
+                f"Superadmin ready: {username} ({email})"
             )
         )
