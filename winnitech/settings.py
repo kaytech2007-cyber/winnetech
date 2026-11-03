@@ -227,9 +227,14 @@ SCHOOL_START_TIME = "07:00"
 SCHOOL_END_TIME = "15:30"
 
 
+# ============================================================
+# CSRF — trusted origins for Render + localhost
+# ============================================================
+# NOTE: Django does NOT support wildcards in CSRF_TRUSTED_ORIGINS.
+# The Render URL is read from RENDER_EXTERNAL_URL env var (auto-set by Render)
+# or from the CSRF_TRUSTED_ORIGINS env var (comma-separated list).
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
-    "https://winnetech.onrender.com",
     "http://localhost:8000",
     "https://localhost:8000",
     "http://127.0.0.1:8000",
@@ -238,10 +243,23 @@ CSRF_TRUSTED_ORIGINS = [
     "https://0.0.0.0:8000",
 ]
 
+# Render sets RENDER_EXTERNAL_URL automatically
+_render_url = os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+if _render_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_url)
+
+# Any extra origins passed via env var
 CSRF_TRUSTED_ORIGINS += [
     origin.strip()
     for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
+]
+
+# Deduplicate while preserving order
+_seen = set()
+CSRF_TRUSTED_ORIGINS = [
+    o for o in CSRF_TRUSTED_ORIGINS
+    if not (o in _seen or _seen.add(o))
 ]
 
 
