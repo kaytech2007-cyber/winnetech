@@ -14,9 +14,7 @@ class Command(BaseCommand):
 
         if not password:
             self.stdout.write(
-                self.style.WARNING(
-                    "SUPERADMIN_PASSWORD not set — skipping superadmin creation."
-                )
+                self.style.WARNING("SUPERADMIN_PASSWORD not set — skipping.")
             )
             return
 
@@ -30,12 +28,12 @@ class Command(BaseCommand):
             )
             return
 
-        # 2. Find user by username OR email
+        # 2. Find user by username OR email (case-insensitive)
         user = User.objects.filter(username=username).first()
         if not user:
             user = User.objects.filter(email__iexact=email).first()
 
-        # 3. If user exists, promote them. If not, create them.
+        # 3. Promote existing user, or create new one
         if user:
             self.stdout.write(
                 self.style.WARNING(
@@ -55,18 +53,11 @@ class Command(BaseCommand):
             user.is_staff = True
             user.is_superuser = True
             user.save()
-            self.stdout.write(
-                self.style.SUCCESS(f"User created: {username}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"User created: {username}"))
 
         # 4. Create AdminProfile with superadmin role
-        AdminProfile.objects.create(
-            user=user,
-            role="superadmin",
-        )
+        AdminProfile.objects.create(user=user, role="superadmin")
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Superadmin ready: {username} ({email})"
-            )
+            self.style.SUCCESS(f"Superadmin ready: {username} ({email})")
         )
