@@ -23,7 +23,7 @@ except ImportError:
     pass
 
 
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
