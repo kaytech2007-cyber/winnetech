@@ -529,7 +529,7 @@ def generate_hod_staff_id(programme_id):
                         continue
 
                 sequence = highest_sequence + 1
-                staff_id = f'{prefix}{sequence:02d}'
+                staff_id = f'{prefix}{sequence:02d}{suffix}'
                 while _staff_id_is_reserved(staff_id, using=database):
                     sequence += 1
                     staff_id = f'{prefix}{sequence:02d}'
@@ -580,7 +580,8 @@ def generate_registered_staff_id(role, programme_code):
 
     database = router.db_for_write(StaffIDRegistry)
     year = timezone.localdate().year
-    prefix = f'WTI-{programme_code}/{year}-'
+    prefix = f'WTI-{programme_code}/'
+    suffix = f'-{year}'
 
     for attempt in range(5):
         try:
