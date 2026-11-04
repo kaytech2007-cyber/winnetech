@@ -465,7 +465,7 @@ def staff_password_setup(request):
             status=status,
         )
         response['Cache-Control'] = 'no-store'
-        response['Referrer-Policy'] = 'no-referrer'
+        response['Referrer-Policy'] = 'same-origin'
         return response
 
     token = request.POST.get('token', '').strip() if request.method == 'POST' else ''

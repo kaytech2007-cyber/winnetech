@@ -2817,7 +2817,7 @@ class HODProgrammeManagementTests(TestCase):
         setup_page = self.client.get(reverse('staff_password_setup'))
         self.assertEqual(setup_page.status_code, 200)
         self.assertIn('no-store', setup_page['Cache-Control'])
-        self.assertEqual(setup_page['Referrer-Policy'], 'no-referrer')
+        self.assertEqual(setup_page['Referrer-Policy'], 'same-origin')
         self.assertNotContains(setup_page, token)
 
         response = self.client.post(
